@@ -28,7 +28,6 @@ struct MessageBuffer
 class MessageQueue
 {
 public:
-
 	MessageQueue(int);
 	vector<string> readQueue();
 	void die(const char *s);
@@ -38,7 +37,6 @@ public:
     int msqid;
     key_t key;
 	char c='q';
-
 };
 
 #endif /* MESSAGEQUEUE_H_ */
