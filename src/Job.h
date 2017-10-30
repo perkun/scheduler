@@ -13,6 +13,7 @@ public:
 	Job(string);
 	void parseMessage(string);
 	void printInfo();
+	void printIdPriority();
 
 	int id, mutator_id;
 	string path;

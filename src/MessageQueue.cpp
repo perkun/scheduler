@@ -7,19 +7,25 @@ void MessageQueue::die(const char *s)
 }
 
 
-MessageQueue::MessageQueue(int k)
+// MessageQueue::MessageQueue(int k)
+// {
+// 	key = k;
+// //
+// 	if ((msqid = msgget(key, 0666)) < 0)
+// 		die("msgget()");
+// //
+// }
+
+
+vector<string> MessageQueue::readQueue(int k, long t)
 {
 	key = k;
+	rcvbuffer.mtype = t;
+
+	vector<string> messages;
 
 	if ((msqid = msgget(key, 0666)) < 0)
 		die("msgget()");
-
-}
-
-
-vector<string> MessageQueue::readQueue()
-{
-	vector<string> messages;
 
 	//Receive an answer of message type 1. BEZ ZATRZASKU -> IPC_NOWAIT
 	while (1)

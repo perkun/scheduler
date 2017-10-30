@@ -28,8 +28,9 @@ struct MessageBuffer
 class MessageQueue
 {
 public:
-	MessageQueue(int);
-	vector<string> readQueue();
+// 	MessageQueue();
+// 	MessageQueue(int);
+	vector<string> readQueue(int k, long t);
 	void die(const char *s);
 
 	struct MessageBuffer rcvbuffer;
