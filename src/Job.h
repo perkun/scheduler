@@ -8,6 +8,8 @@ using namespace std;
 
 class Job
 {
+
+
 public:
 	Job();
 	Job(string);
@@ -16,6 +18,10 @@ public:
 	void printIdPriority();
 	int getPriority();
 	void setPriority(int);
+	void setStatus(int);
+	int getStatus();
+
+	string getMessageToCrankshaft();
 
 	// time getExecutonTime();
 	// void startClock();
@@ -26,15 +32,27 @@ public:
 	void setComputerIp(const char *);
 	string getComputerIp();
 
-// 	enum {
-// 		PHOTOMETRY,
-// 		RADAR,
-// 		OCCULT,
-// 		BALANING
-// 	};
+	// 	enum jobType {
+	// 		PHOTOMETRY,
+	// 		RADAR,
+	// 		OCCULT,
+	// 		BALANING
+	// 	};
+
+	enum Status {
+		NEW,
+// 		PENDING,		// ???
+// 		EXECUTING,		// ???
+		SENT,
+		FINISHED,
+		HALTED,
+		ERROR
+	};
+
 
 protected:
 
+	int status;
 	// rzeczy z kolejki zczytane
 	int id, mutator_id, priority;
 	string path, program;

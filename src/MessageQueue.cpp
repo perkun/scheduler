@@ -51,3 +51,9 @@ vector<string> MessageQueue::readQueue(int k, long t)
 	}
 	return messages;
 }
+
+
+int MessageQueue::sendMessage(int, long, string)
+{
+	// TODO
+}

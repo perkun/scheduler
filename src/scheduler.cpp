@@ -16,6 +16,10 @@
 
 using namespace std;
 
+int mutator_queue_id = 1234, crankshaft_queue_id = 1234;
+long mutator_message_type = 1, scheduler_message_type = 2,
+	 crankshaft_message_type = 3;
+MessageQueue msq;
 
 void moveFromPendingToExecuting(JobList &pending_jobs, JobList &executing_jobs);
 void executeJobs(JobList &executing_jobs);
@@ -23,14 +27,9 @@ void executeJobs(JobList &executing_jobs);
 
 int main() {
 
-	int mutator_queue_id = 1234;
-	long mutator_message_type = 1;
 
 	JobList pending_jobs;
 	JobList executing_jobs;
-	MessageQueue msq;
-
-
 
 
 	//============================== MAIN LOOP: ==============================
@@ -92,6 +91,10 @@ int main() {
 
 void moveFromPendingToExecuting(JobList &pending_jobs, JobList &executing_jobs)
 {
+	/** bierze pending_jobs i wrzuca do executing_jobs w kolejności zależnej od
+	 * priorytetów. Zadania z priorytetm x pojawią się x razy. Nie wszystkie
+	 * zadanie zostaną przełożone; tylko $$ Sum_{i}^{i=x} i $$
+	 */
 
 	map<int, int> priority_counter;
 	int maximum = pending_jobs.getMaxPriority();
@@ -136,7 +139,31 @@ void moveFromPendingToExecuting(JobList &pending_jobs, JobList &executing_jobs)
 
 void executeJobs(JobList &executing_jobs)
 {
-	// 1) oszacuj zasoby
+	/**
+	 * Jedzie po executing_jobs i szuka tych ze statusem NEW, szuka kompa i
+	 * wysyła do kolejki Crankshaftu
+	 */
 
+	// KOLEJKA FIFO, zdejmujemy (ustawiamy status SENT) z kolejki
+	for (int i = 0; i < executing_jobs.size(); i++)
+		if (executing_jobs[i].getStatus() == Job::Status::NEW)
+		{
 
+			// 1) oszacuj zasoby
+			executing_jobs[i].estimateResources();
+
+			// 2) find computer with free resources
+
+			// 3) send message to Crankshaft message queue
+			msq.sendMessage(
+					crankshaft_queue_id,
+					crankshaft_message_type,
+					executing_jobs[i].getMessageToCrankshaft()
+					);
+
+			// and set status to SENT
+			executing_jobs[i].setStatus(Job::Status::SENT);
+		}
 }
+
+

@@ -31,6 +31,7 @@ public:
 // 	MessageQueue();
 // 	MessageQueue(int);
 	vector<string> readQueue(int k, long t);
+	int sendMessage(int, long, string);
 	void die(const char *s);
 
 	struct MessageBuffer rcvbuffer;
