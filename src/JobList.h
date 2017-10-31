@@ -14,14 +14,31 @@ class JobList
 {
 public:
 
-	void pushBackJobs( vector<string> &messages);
+	Job& operator[] (const int index);
+
+	void pushBackFromMessages( vector<string> &messages);
+	void pushBack( Job );
 	int getMaxPriority();
-	void clear();
 	int getPriorityIndex(int);
 	void erase(int);
+	Job getJobAtIndex(int);
+	void printAll();
+	void clear();
+	unsigned int size();
 
+protected:
 	vector<Job> jobs;
 
 };
+
+
+// class ExecutingList : public JobList
+// {
+// public:
+// 	int status;
+//
+// };
+
+
 
 #endif /* JOBLIST_H_ */

@@ -2,7 +2,8 @@
 
 Job::Job()
 {
-	id = mutator_id = priority = -1;
+	id = mutator_id = priority = job_type = -1;
+	resources = -1;
 }
 
 Job::Job(string msg)
@@ -39,3 +40,36 @@ void Job::printIdPriority()
 {
 	printf("id: %d\tpriority: %d\n", id, priority);
 }
+
+int Job::getPriority()
+{
+	return priority;
+}
+
+void Job::setPriority(int p)
+{
+	priority = p;
+}
+
+void Job::estimateResources()
+{
+	// TODO
+}
+
+void Job::setComputerIp(string s)
+{
+	computer_ip = s;
+}
+
+void Job::setComputerIp(const char *s)
+{
+	computer_ip = s;
+}
+
+string Job::getComputerIp()
+{
+	return computer_ip;
+}
+
+
+

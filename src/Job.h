@@ -14,11 +14,38 @@ public:
 	void parseMessage(string);
 	void printInfo();
 	void printIdPriority();
+	int getPriority();
+	void setPriority(int);
 
-	int id, mutator_id;
-	string path;
-	string program;
-	int priority;
+	// time getExecutonTime();
+	// void startClock();
+	// void stopClock();
+
+	void estimateResources();
+	void setComputerIp(string);
+	void setComputerIp(const char *);
+	string getComputerIp();
+
+// 	enum {
+// 		PHOTOMETRY,
+// 		RADAR,
+// 		OCCULT,
+// 		BALANING
+// 	};
+
+protected:
+
+	// rzeczy z kolejki zczytane
+	int id, mutator_id, priority;
+	string path, program;
+
+	// do wykonywania
+	// time start, stop
+	double resources;
+	int job_type;
+	string computer_ip;
+
+
 
 };
 
