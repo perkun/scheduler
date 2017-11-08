@@ -1,39 +1,54 @@
-PROGRAM_NAME = scheduler
-CC = g++
-SRCDIR = src
-BUILDDIR = build
-# PROGRAM_NAME = ??? <- pierwsza linia
-TARGET = bin/$(PROGRAM_NAME)
-CPPEXT = cpp
-CFLAGS = -g -c -std=c++11
-LIB =
+CC=g++
+SRC = src
+BUILD = build
+BIN = bin
 
-SOURCES = $(shell find $(SRCDIR) -type f -name *.$(CPPEXT))
-HEADERS = $(shell find $(SRCDIR) -type f -name *.h)
+CFLAGS = -g -c -std=c++11 -Wall
+LFLAGS = -g -Wall -std=c++11
 
-OBJECTS = $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(CPPEXT)=.o))
-SHARED_OBJECTS = $(patsubst $(SRCDIR)/%,./%,$(SOURCES:.$(CPPEXT)=.o))
 
-$(TARGET): $(OBJECTS)
-		@echo " Linking..."
-		@echo ">>>>>>>>>>>>>>>> $(CC) $^ -o $(TARGET) $(LIB)"; $(CC) $^ -o $(TARGET) $(LIB)
 
-$(BUILDDIR)/%.o: $(SRCDIR)/%.$(CPPEXT)
-		@mkdir -p $(BUILDDIR)
-		@echo "CPP>>>>>>>>>>>>>>>>  $(CC) $(CFLAGS) $(INC) -c -o $@ $<"; $(CC) $(CFLAGS) $(INC) -c -o $@ $^
 
+OBJS = $(BUILD)/Job.o $(BUILD)/JobList.o $(BUILD)/MessageQueue.o $(BUILD)/scheduler.o
+
+
+
+
+all: $(BIN)/scheduler $(BIN)/mqSend $(BIN)/crankshaft
+
+# EXECUTABLES
+$(BIN)/scheduler: $(OBJS)
+		$(CC) $(LFLAGS) $(OBJS) -o $(BIN)/scheduler
+
+$(BIN)/crankshaft: $(BUILD)/crankshaft.o $(BUILD)/MessageQueue.o
+		$(CC) $(LFLAGS) $(BUILD)/crankshaft.o $(BUILD)/MessageQueue.o  -o $(BIN)/crankshaft
+
+$(BIN)/mqSend:
+		gcc mqSend.c -o mqSend
+
+# OBJECT FILES
+
+$(BUILD)/crankshaft.o: $(SRC)/crankshaft.cpp $(SRC)/MessageQueue.h
+		@mkdir -p $(BUILD)
+		$(CC) $(CFLAGS) $(SRC)/crankshaft.cpp -o $(BUILD)/crankshaft.o
+
+
+$(BUILD)/scheduler.o: $(SRC)/scheduler.cpp $(SRC)/MessageQueue.h $(SRC)/Job.h $(SRC)/JobList.h
+		@mkdir -p $(BUILD)
+		$(CC) $(CFLAGS) $(SRC)/scheduler.cpp -o $(BUILD)/scheduler.o
+
+
+$(BUILD)/MessageQueue.o: $(SRC)/MessageQueue.cpp $(SRC)/MessageQueue.h
+		@mkdir -p $(BUILD)
+		$(CC) $(CFLAGS) $(SRC)/MessageQueue.cpp -o $(BUILD)/MessageQueue.o
+
+$(BUILD)/Job.o: $(SRC)/Job.cpp $(SRC)/Job.h
+		@mkdir -p $(BUILD)
+		$(CC) $(CFLAGS) $(SRC)/Job.cpp -o $(BUILD)/Job.o
+
+$(BUILD)/JobList.o: $(SRC)/JobList.cpp $(SRC)/JobList.h $(SRC)/Job.h
+		@mkdir -p $(BUILD)
+		$(CC) $(CFLAGS) $(SRC)/JobList.cpp -o $(BUILD)/JobList.o
 
 clean:
-		@echo " Cleaning...";
-		@echo " $(RM) -r $(BUILDDIR) $(TARGET)"; $(RM) -r $(BUILDDIR) $(TARGET)
-
-shared_library:
-		$(CC)  $(CFLAGS) -fPIC $(HEADERS) $(SOURCES) $(LIB)
-		$(CC) -shared -o bin/lib$(PROGRAM_NAME).so $(SHARED_OBJECTS) $(LIBS)
-		sudo cp bin/lib$(PROGRAM_NAME).so /usr/local/lib
-		sudo chmod 755 /usr/local/lib/lib$(PROGRAM_NAME).so
-		sudo ldconfig
-		sudo mkdir -p /usr/local/include/$(PROGRAM_NAME)
-		sudo cp src/*.h /usr/local/include/$(PROGRAM_NAME)/
-		rm *.o
-		rm src/*.gch
+		rm -r $(BUILD) $(BIN)/scheduler

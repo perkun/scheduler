@@ -31,7 +31,7 @@ int main()
 
 
 	// niszczy kolejke
-	msgctl(msqid, IPC_RMID, NULL);
+// 	msgctl(msqid, IPC_RMID, NULL);
 
     if ((msqid = msgget(key, msgflg )) < 0)   //Get the message queue ID for the given key
       die("msgget");

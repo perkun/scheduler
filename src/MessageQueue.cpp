@@ -30,7 +30,7 @@ vector<string> MessageQueue::readQueue(int k, long t)
 	//Receive an answer of message type 1. BEZ ZATRZASKU -> IPC_NOWAIT
 	while (1)
 	{
-		if (msgrcv(msqid, &rcvbuffer, MAXSIZE, 1, IPC_NOWAIT) < 0)
+		if (msgrcv(msqid, &rcvbuffer, MAXSIZE, t, IPC_NOWAIT) < 0)
 		{
 			if (errno == ENOMSG)
 			{
@@ -53,7 +53,24 @@ vector<string> MessageQueue::readQueue(int k, long t)
 }
 
 
-int MessageQueue::sendMessage(int, long, string)
+int MessageQueue::sendMessage(int k, long t, string message)
 {
-	// TODO
+	key = k;
+	rcvbuffer.mtype = t;
+
+	if ((msqid = msgget(key, 0666)) < 0)
+		return -1;
+
+	sprintf(rcvbuffer.mtext, "%s", message.c_str() );
+
+	size_t buflen = strlen(rcvbuffer.mtext) + 1;
+
+	if (msgsnd(msqid, &rcvbuffer, buflen, IPC_NOWAIT) < 0)
+	{
+		printf ("%d, %ld, %s, %lu\n", msqid, rcvbuffer.mtype, rcvbuffer.mtext, buflen);
+		die("msgsnd");
+	}
+
+
+	return 0;
 }

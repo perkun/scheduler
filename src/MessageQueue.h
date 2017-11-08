@@ -10,6 +10,7 @@
 #include <sys/msg.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <string.h>
 
 #define MAXSIZE 128
 
@@ -31,7 +32,7 @@ public:
 // 	MessageQueue();
 // 	MessageQueue(int);
 	vector<string> readQueue(int k, long t);
-	int sendMessage(int, long, string);
+	int sendMessage(int k, long t, string message);
 	void die(const char *s);
 
 	struct MessageBuffer rcvbuffer;

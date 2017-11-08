@@ -10,7 +10,7 @@
 * `string` path
 * `string` program_name
 
-# MessageQueue Scheduler -> Corbowod
+# MessageQueue Scheduler -> Crankshaft
 
 * `string` computer_ip
 * `int` task_id
@@ -18,6 +18,15 @@
 * `string` path
 * `string` program_name
 
+# MessageQueue Crankshaft -> Scheduler
+
+* `int` task_id
+* `int` status
+
+# MessageQueue Scheduler -> Mutator
+
+* `int` task_id
+* ???
 
 # Mutator MessageQueue key = 1234
 # Crankshaft MessageQueue key = 1234

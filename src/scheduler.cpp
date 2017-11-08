@@ -7,6 +7,7 @@
 #include <errno.h>
 #include <vector>
 #include <map>
+#include <time.h>
 
 #include "MessageQueue.h"
 #include "Job.h"
@@ -16,17 +17,19 @@
 
 using namespace std;
 
-int mutator_queue_id = 1234, crankshaft_queue_id = 1234;
+int mutator_queue_id = 1234, crankshaft_queue_id = 1234,
+   	scheduler_queue_id = 1234;
 long mutator_message_type = 1, scheduler_message_type = 2,
 	 crankshaft_message_type = 3;
 MessageQueue msq;
 
 void moveFromPendingToExecuting(JobList &pending_jobs, JobList &executing_jobs);
 void executeJobs(JobList &executing_jobs);
+void updateStatusFromCrankshaft(JobList &executing_jobs);
+void manageFinishedJobs(JobList &executing_jobs);
 
 
 int main() {
-
 
 	JobList pending_jobs;
 	JobList executing_jobs;
@@ -35,7 +38,28 @@ int main() {
 	//============================== MAIN LOOP: ==============================
 	while (1)
 	{
-		//czytaj wszystkie dostępne komunikaty czekające w kolejce
+		// poinformować mutator o zakonzeniu zadania
+		// zdecydować co robić, jak wróci błąd wykonania zadania
+		// update bazy danych z obciazeniami komputerów
+
+		// przeczytaj kolejke Crankshafta i ustal odpowiednie statusy
+		if (executing_jobs.size() > 0 )
+		{
+			updateStatusFromCrankshaft(executing_jobs);
+			// zakończone zadania zdejmij z kolejki i zwolnij zasoby komputerów
+			manageFinishedJobs(executing_jobs);
+
+		}
+
+
+
+
+		for (unsigned int i = 0; i < executing_jobs.size(); i++)
+			cout << "id status: " << executing_jobs[i].getId() << " " <<
+				executing_jobs[i].getStatus() << "\n";
+
+
+		// czytaj wszystkie dostępne komunikaty czekające w kolejce
 		vector<string> messages = msq.readQueue(mutator_queue_id,
 			   									mutator_message_type);
 		if (messages.empty())
@@ -46,9 +70,9 @@ int main() {
 		// priorytetowanie
 		moveFromPendingToExecuting(pending_jobs, executing_jobs);
 
-		// w executing_jobs leżą teraz joby, które trzeba skwencyjnie od 0,1,...
-		// zdjąć do wykonania na komputerze (FIFO)
 
+		// w executing_jobs leżą teraz joby, które trzeba skwencyjnie od 0,1,...
+		// wysłać do wykonania na komputerze (FIFO)
 		executeJobs(executing_jobs);
 
 
@@ -66,8 +90,6 @@ int main() {
 		executing_jobs.printAll();
 		printf("=======================\n");
 
-
-
 	///////////////////// USER CONTROL ///////////////////
 		char c = getchar();
 
@@ -81,6 +103,7 @@ int main() {
 			pending_jobs.printAll();
 		else if ( c == 'e' )
 			executing_jobs.printAll();
+
 	}
 
 
@@ -145,7 +168,7 @@ void executeJobs(JobList &executing_jobs)
 	 */
 
 	// KOLEJKA FIFO, zdejmujemy (ustawiamy status SENT) z kolejki
-	for (int i = 0; i < executing_jobs.size(); i++)
+	for (unsigned int i = 0; i < executing_jobs.size(); i++)
 		if (executing_jobs[i].getStatus() == Job::Status::NEW)
 		{
 
@@ -153,17 +176,82 @@ void executeJobs(JobList &executing_jobs)
 			executing_jobs[i].estimateResources();
 
 			// 2) find computer with free resources
+			// 2.5) set ip adress
+			executing_jobs[i].setComputerIp("150.254.66.0");
+
+// 			cout <<  executing_jobs[i].getMessageToCrankshaft() << "\n";
+
+			// start timer
+			executing_jobs[i].startClock();
 
 			// 3) send message to Crankshaft message queue
+// 			if (
 			msq.sendMessage(
 					crankshaft_queue_id,
 					crankshaft_message_type,
 					executing_jobs[i].getMessageToCrankshaft()
-					);
+				);
+// 				   	!= -1)
+// 				printf("wysłalem\n");
 
 			// and set status to SENT
 			executing_jobs[i].setStatus(Job::Status::SENT);
 		}
+
+
 }
 
+void updateStatusFromCrankshaft(JobList &executing_jobs)
+{
+	/// przeczytaj kolejke od crankshafta i ustaw odpowiednie statusy zadaniom
+	vector<string> messages =
+		msq.readQueue(scheduler_queue_id, scheduler_message_type);
 
+	if ( messages.empty() )
+		return;
+
+	for (string s: messages)
+	{
+		int id = -1, status = -1;
+		sscanf(s.c_str(), "%d %d", &id, &status);
+
+		if (status < 0 || status >= Job::Status::NUM_STATUSES)
+		{
+			printf("wrong status (%d) from crankshaft for job %d", status, id);
+			status = Job::Status::ERROR;
+// 			continue;
+		}
+
+		for (unsigned int i = 0; i < executing_jobs.size(); i++)
+			if (executing_jobs[i].getId() == id)
+				executing_jobs[i].setStatus(status);
+
+	}
+
+}
+
+void manageFinishedJobs(JobList &executing_jobs)
+{
+	char buf[MAXSIZE];
+
+	for (unsigned int i = 0; i < executing_jobs.size(); i++)
+		if (executing_jobs[i].getStatus() == Job::Status::FINISHED)
+		{
+			// send message to mutator
+			sprintf(buf,
+				   	"%d %d",
+					executing_jobs[i].getId(),
+					Job::Status::FINISHED );
+			msq.sendMessage(mutator_message_type, scheduler_message_type, buf);
+
+			// stop timer
+			executing_jobs[i].stopClock();
+
+			// release resources (DataBase)
+
+			// remove from the list
+			executing_jobs.erase(i);
+			i--;
+		}
+
+}

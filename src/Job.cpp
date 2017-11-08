@@ -5,7 +5,7 @@ Job::Job()
 	id = mutator_id = priority = job_type = -1;
 	resources = -1;
 
-	computer_ip = "150.254.66.29";
+	computer_ip = "unknown";
 
 	status = Status::NEW;
 }
@@ -83,6 +83,13 @@ string Job::getComputerIp()
 
 string Job::getMessageToCrankshaft()
 {
+	/// returns string with:
+	//		computer_ip
+	//		task_id
+	//		mutator_id
+	//		path
+	//		program
+
 	char buf[100];
 	string s;
 
@@ -102,6 +109,22 @@ string Job::getMessageToCrankshaft()
 	return s;
 }
 
+double Job::getExecutonTimeSeconds()
+{
+// 	time(&end);
+	return difftime(end, start);
+}
+
+void Job::startClock()
+{
+	time(&start);
+}
+
+void Job::stopClock()
+{
+	time(&end);
+}
+
 
 void Job::setStatus(int s)
 {
@@ -111,6 +134,11 @@ void Job::setStatus(int s)
 int Job::getStatus()
 {
 	return status;
+}
+
+int Job::getId()
+{
+	return id;
 }
 
 

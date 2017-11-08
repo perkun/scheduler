@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <stdio.h>
+#include <time.h>
 
 using namespace std;
 
@@ -20,17 +21,20 @@ public:
 	void setPriority(int);
 	void setStatus(int);
 	int getStatus();
+	int getId();
 
 	string getMessageToCrankshaft();
 
-	// time getExecutonTime();
-	// void startClock();
-	// void stopClock();
+	double getExecutonTimeSeconds();
+	void startClock();
+	void stopClock();
 
 	void estimateResources();
 	void setComputerIp(string);
 	void setComputerIp(const char *);
 	string getComputerIp();
+
+
 
 	// 	enum jobType {
 	// 		PHOTOMETRY,
@@ -46,11 +50,13 @@ public:
 		SENT,
 		FINISHED,
 		HALTED,
-		ERROR
+		ERROR,
+		NUM_STATUSES
 	};
 
 
 protected:
+	time_t start, end;
 
 	int status;
 	// rzeczy z kolejki zczytane

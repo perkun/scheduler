@@ -39,7 +39,7 @@ void JobList::clear()
 
 int JobList::getPriorityIndex(int priority)
 {
-	for (int i = 0; i < jobs.size(); i++)
+	for (unsigned int i = 0; i < jobs.size(); i++)
 	{
 		if ( jobs[i].getPriority() == priority )
 			return i;
