@@ -84,8 +84,6 @@ int main() {
 
 			// manageErrorJobs
 		}
-
-
 		// CONTROLL
 		for (unsigned int i = 0; i < executing_jobs.size(); i++)
 			cout << "id status: " << executing_jobs[i].getId() << " " <<
@@ -111,8 +109,8 @@ int main() {
 
 
 
-		printf("pending_jobs size: %u\n", pending_jobs.size());
-		printf("executing_jobs size: %u\n", executing_jobs.size());
+// 		printf("pending_jobs size: %u\n", pending_jobs.size());
+// 		printf("executing_jobs size: %u\n", executing_jobs.size());
 
 		printf("======= pending =======\n");
 		pending_jobs.printAll();
@@ -156,8 +154,7 @@ void moveFromPendingToExecuting(JobList &pending_jobs, JobList &executing_jobs)
 	int maximum = pending_jobs.getMaxPriority();
 	// wyczysc counter
 	priority_counter.clear();
-	// 		printf("max priority: %d\n", maximum);
-	//
+
 	// ================ PRIORYTETOWANIE ================
 	while (maximum > 0)
 	{
@@ -206,12 +203,13 @@ void executeJobs(JobList &executing_jobs)
 	for (unsigned int i = 0; i < executing_jobs.size(); i++)
 		if (executing_jobs[i].getStatus() == Job::Status::NEW)
 		{
+			Job *job = &executing_jobs[i];
 
 			// 1) oszacuj zasoby
 // 			executing_jobs[i].estimateResources();
 // 			odniesc sie do bazy danych ze statystykami itp
 			int resources = 200;
-			executing_jobs[i].setResources(resources);
+			job->setResources(resources);
 
 
 			// 2) find computer with free resources
@@ -235,7 +233,7 @@ void executeJobs(JobList &executing_jobs)
 			// test for null
 			if (res[0]["resources"].is_null() )
 			{
-				printf("value is null!\n");
+// 				printf("value is null!\n");
 				computer_resources = 0.;
 			}
 			else
@@ -369,7 +367,12 @@ void printTable(result &res)
 void clearJobsInDatabase()
 {
 	servicesTransaction.exec("delete from jobs;");
+	servicesTransaction.exec("COMMIT;");
 }
+
+
+
+
 // void takeJobsFromDatabase(JobList &executing_jobs)
 // {
 // 	res = servicesTransaction.exec("SELECT * FROM jobs;");

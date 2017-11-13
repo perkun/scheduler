@@ -19,6 +19,7 @@ void MessageQueue::die(const char *s)
 
 vector<string> MessageQueue::readQueue(int k, long t)
 {
+	printf("reading queue\n");
 	key = k;
 	rcvbuffer.mtype = t;
 
@@ -31,6 +32,7 @@ vector<string> MessageQueue::readQueue(int k, long t)
 	while (1)
 	{
 		if (msgrcv(msqid, &rcvbuffer, MAXSIZE, t, IPC_NOWAIT) < 0)
+// 		if (msgrcv(msqid, &rcvbuffer, MAXSIZE, t, 0) < 0)
 		{
 			if (errno == ENOMSG)
 			{

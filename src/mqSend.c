@@ -66,11 +66,15 @@ int main()
 	int counter = 1;
 	while (1)
 	{
- 		char bufor[20];
-
+		char bufor[20];
 		scanf("%[^\n]",bufor);
 // 		scanf("%[^\n]",sbuf.mtext);
 		getchar();
+
+		if ((msqid = msgget(key, 0666 )) < 0)
+			die("msgget");
+
+
 
 // 		scanf("%s", bufor);
 // 		scanf("%s", sbuf.mtext);
