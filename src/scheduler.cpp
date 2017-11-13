@@ -209,7 +209,7 @@ void executeJobs(JobList &executing_jobs)
 // 			executing_jobs[i].estimateResources();
 // 			odniesc sie do bazy danych ze statystykami itp
 			int resources = 200;
-			job->setResources(resources);
+			executing_jobs[i].setResources(resources);
 
 
 			// 2) find computer with free resources
