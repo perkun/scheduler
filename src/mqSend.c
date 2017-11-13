@@ -33,21 +33,33 @@ int main()
 	// niszczy kolejke
 // 	msgctl(msqid, IPC_RMID, NULL);
 
-    if ((msqid = msgget(key, msgflg )) < 0)   //Get the message queue ID for the given key
+//     if ((msqid = msgget(key, msgflg )) < 0)   //Get the message queue ID for the given key
+//       die("msgget");
+//
+// 	if (msgctl(msqid, IPC_RMID, NULL) == -1)
+// 		printf("Message queue could not be deleted\n");
+// 	getchar();
+
+
+	// sprawdz czy istnieje
+	if ((msqid = msgget(key, 0666 )) < 0)
       die("msgget");
+
+// 		msqid = msgget(key, msgflg );
+
 
     //Message Type
     sbuf.mtype = 1;
 
-	int i;
-	for(i=0;i<100000 ;i=i+1)
-	{
-		bzero(sbuf.mtext,sizeof(sbuf.mtext));
-		if(msgrcv(msqid, &sbuf, sizeof(sbuf.mtext),0,IPC_NOWAIT)==-1)
-		{
-			i=10000000;
-		}
-	}
+// 	int i;
+// 	for(i=0;i<100000 ;i=i+1)
+// 	{
+// 		bzero(sbuf.mtext,sizeof(sbuf.mtext));
+// 		if(msgrcv(msqid, &sbuf, sizeof(sbuf.mtext),0,IPC_NOWAIT)==-1)
+// 		{
+// 			i=10000000;
+// 		}
+// 	}
 
     printf("MQ started\n");
 
@@ -63,7 +75,7 @@ int main()
 // 		scanf("%s", bufor);
 // 		scanf("%s", sbuf.mtext);
 
-		sprintf(sbuf.mtext, "%d 0 %s /home jasnosc.cpp", counter, bufor);
+		sprintf(sbuf.mtext, "%d 0 %s /home 0", counter, bufor);
 
 		buflen = strlen(sbuf.mtext) + 1 ;
 

@@ -17,23 +17,35 @@ public:
 	void parseMessage(string);
 	void printInfo();
 	void printIdPriority();
-	int getPriority();
+
 	void setPriority(int);
+	int getPriority();
+
 	void setStatus(int);
 	int getStatus();
+
 	int getId();
 
-	string getMessageToCrankshaft();
+	void setResources(double);
+	int getResources();
 
-	double getExecutonTimeSeconds();
-	void startClock();
-	void stopClock();
-
-	void estimateResources();
 	void setComputerIp(string);
 	void setComputerIp(const char *);
 	string getComputerIp();
 
+	int getService();
+
+	int getMutatorId();
+
+	string getPath();
+
+	string getMessageToCrankshaft();
+
+	double estimateResources();
+
+	double getExecutonTimeSeconds();
+	void startClock();
+	void stopClock();
 
 
 	// 	enum jobType {
@@ -54,6 +66,11 @@ public:
 		NUM_STATUSES
 	};
 
+	enum Service {
+		FOTO,
+		RADAR
+	};
+
 
 protected:
 	time_t start, end;
@@ -65,8 +82,8 @@ protected:
 
 	// do wykonywania
 	// time start, stop
-	double resources;
-	int job_type;
+	int resources;
+	int service;
 	string computer_ip;
 
 

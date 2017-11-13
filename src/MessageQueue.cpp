@@ -25,7 +25,7 @@ vector<string> MessageQueue::readQueue(int k, long t)
 	vector<string> messages;
 
 	if ((msqid = msgget(key, 0666)) < 0)
-		die("msgget()");
+		die("readQueue");
 
 	//Receive an answer of message type 1. BEZ ZATRZASKU -> IPC_NOWAIT
 	while (1)
@@ -68,9 +68,27 @@ int MessageQueue::sendMessage(int k, long t, string message)
 	if (msgsnd(msqid, &rcvbuffer, buflen, IPC_NOWAIT) < 0)
 	{
 		printf ("%d, %ld, %s, %lu\n", msqid, rcvbuffer.mtype, rcvbuffer.mtext, buflen);
-		die("msgsnd");
+		die("sendMessage failed");
 	}
 
 
 	return 0;
+}
+
+void MessageQueue::recreate(int k)
+{
+	int msgflg = IPC_CREAT | 0666;
+	key = k;
+
+	if ((msqid = msgget(key, 0666 )) < 0)
+	{
+		//       die("clearing error ");
+		printf("no queue to destroy\n");
+// 		return;
+	}
+	else if (msgctl(msqid, IPC_RMID, NULL) == -1)
+		printf("Message queue could not be deleted\n");
+
+	printf("creating new queue\n");
+	msqid = msgget(key, msgflg);
 }

@@ -2,7 +2,7 @@
 
 Job::Job()
 {
-	id = mutator_id = priority = job_type = -1;
+	id = mutator_id = priority = service = -1;
 	resources = -1;
 
 	computer_ip = "unknown";
@@ -24,13 +24,15 @@ Job::Job(string msg)
 
 void Job::parseMessage(string msg)
 {
-	char buff1[1000], buff2[1000];
+	char buff1[1000]; //buff2[1000];
 
-	sscanf(msg.c_str(), "%d %d %d %s %s", &id, &mutator_id, &priority,
-			buff1, buff2);
+	sscanf(msg.c_str(),
+		   	"%d %d %d %s %d",
+			&id, &mutator_id, &priority, buff1, &service);
 	path = buff1;
-	program = buff2;
+// 	program = buff2;
 
+// 	printf("service: %d\n", service);
 	if (id < 0 || mutator_id < 0 || priority < 0)
 		perror("invalid message");
 
@@ -59,9 +61,10 @@ void Job::setPriority(int p)
 	priority = p;
 }
 
-void Job::estimateResources()
+double Job::estimateResources()
 {
 	// TODO
+	return 0.2;
 }
 
 void Job::setComputerIp(string s)
@@ -77,6 +80,31 @@ void Job::setComputerIp(const char *s)
 string Job::getComputerIp()
 {
 	return computer_ip;
+}
+
+int Job::getService()
+{
+	return service;
+}
+
+int Job::getMutatorId()
+{
+	return mutator_id;
+}
+
+void Job::setResources(double r)
+{
+	resources = r;
+}
+
+int Job::getResources()
+{
+	return resources;
+}
+
+string Job::getPath()
+{
+	return path;
 }
 
 
