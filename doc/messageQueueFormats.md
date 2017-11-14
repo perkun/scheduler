@@ -48,7 +48,6 @@
 # Database
 
 ## Table jobs
-
 CREATE TABLE jobs (
 	jobid int,
 	ip inet,

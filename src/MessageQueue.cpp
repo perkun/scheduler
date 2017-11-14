@@ -19,7 +19,7 @@ void MessageQueue::die(const char *s)
 
 vector<string> MessageQueue::readQueue(int k, long t)
 {
-	printf("reading queue\n");
+// 	printf("reading queue\n");
 	key = k;
 	rcvbuffer.mtype = t;
 
@@ -52,6 +52,24 @@ vector<string> MessageQueue::readQueue(int k, long t)
 		}
 	}
 	return messages;
+}
+
+string MessageQueue::readMessageNowait(int k, long t)
+{
+	key = k;
+	rcvbuffer.mtype = t;
+
+	string message;
+
+	if ((msqid = msgget(key, 0666)) < 0)
+		die("readQueue");
+
+	if (msgrcv(msqid, &rcvbuffer, MAXSIZE, t, 0) < 0)
+		die("msgrcv");
+	else
+		message = rcvbuffer.mtext;
+
+	return message;
 }
 
 
