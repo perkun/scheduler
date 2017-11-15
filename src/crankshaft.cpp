@@ -28,16 +28,8 @@ int main () {
 
 	while (1)
 	{
-		// ma chodzić ciągle, co 1sec, czy na zatrzasku?
-		// chyba na zatrzasku bedzie najlepiej...
-		// 		vector<string> messages = msq.readQueue(1234, 3);
 		string m = msq.readMessageNowait(1234, 3);
 
-		// 		if (messages.empty())
-		// 			printf("msqueue empty\n");
-
-		// 		for (string m: messages)
-		// 		{
 		pid_t pid = fork();
 		if (pid == 0)
 		{
@@ -62,10 +54,8 @@ int main () {
 
 			return 1;
 		}
-		// 		}
 
 
-		// 		sleep(2);
 	}
 
 	return 0;
