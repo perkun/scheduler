@@ -1,4 +1,3 @@
-
 # Message Queues
 
 ## only scheduler can create and destroy MQs
@@ -14,6 +13,7 @@
 * `int` priority
 * `string` path
 * `int` service			// foto, radar, occ, ...
+* `int` resources
 
 ## MessageQueue Scheduler -> Crankshaft
 
@@ -64,17 +64,9 @@ CREATE TABLE services (
 	service int
 );
 
+CREATE TABLE blocked (
+	ip inet,
+	jobid int
+);
 
 
-
-
-
-
-
-			"SELECT j.ip, (1-j.sum) AS free_res "
-			"FROM "
-		   	"(SELECT jobs.ip, sum(jobs.weight) FROM jobs "
-			"GROUP BY  ip order by sum) AS j "
-			"INNER JOIN "
-			"(SELECT services.ip FROM services WHERE services.service=%d) AS k "
-			"ON j.ip=k.ip order by free_res DESC;",

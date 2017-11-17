@@ -27,8 +27,8 @@ void Job::parseMessage(string msg)
 	char buff1[1000]; //buff2[1000];
 
 	sscanf(msg.c_str(),
-		   	"%d %d %d %s %d",
-			&id, &mutator_id, &priority, buff1, &service);
+		   	"%d %d %d %s %d %d",
+			&id, &mutator_id, &priority, buff1, &service, &resources);
 	path = buff1;
 // 	program = buff2;
 
