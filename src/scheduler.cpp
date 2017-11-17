@@ -37,8 +37,8 @@ long mutator_message_type = 1,
 MessageQueue msq;
 
 
-// connection services("dbname=grzeslaff user=grzeslaff password=grigori8 hostaddr=150.254.66.29 ");
-connection services("dbname=grzeslaff user=grzeslaff password=grigori hostaddr=127.0.0.1");
+connection services("dbname=grzeslaff user=grzeslaff password=grigori8 hostaddr=150.254.66.29 ");
+// connection services("dbname=grzeslaff user=grzeslaff password=grigori hostaddr=127.0.0.1");
 transaction<> servicesTransaction(services, "Services transaction");
 result res;
 

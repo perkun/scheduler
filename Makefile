@@ -9,9 +9,7 @@ LIBS = -lpqxx
 
 
 
-
-OBJS = $(BUILD)/Job.o $(BUILD)/JobList.o $(BUILD)/MessageQueue.o $(BUILD)/scheduler.o $(BUILD)/Database.o
-
+OBJS = $(BUILD)/Job.o $(BUILD)/JobList.o $(BUILD)/MessageQueue.o $(BUILD)/scheduler.o
 
 
 
@@ -31,10 +29,6 @@ $(BIN)/mqSend:
 
 
 ################### OBJECT FILES ###################
-$(BUILD)/Database.o: $(SRC)/Database.cpp
-		@mkdir -p $(BUILD)
-		$(CC) $(CFLAGS) $(SRC)/Database.cpp -o $(BUILD)/Database.o
-
 $(BUILD)/crankshaft.o: $(SRC)/crankshaft.cpp $(SRC)/MessageQueue.h
 		@mkdir -p $(BUILD)
 		$(CC) $(CFLAGS) $(SRC)/crankshaft.cpp -o $(BUILD)/crankshaft.o
