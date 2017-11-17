@@ -44,7 +44,7 @@ int main () {
 					&mutator_id, path, program_name);
 
 			////////// RUN CORBA //////////
-			sleep(6);
+			sleep(20);
 			///////////////////////////////
 
 			char buf[100];

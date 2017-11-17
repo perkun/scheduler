@@ -61,6 +61,7 @@ public:
 // 		EXECUTING,		// ???
 		SENT,
 		FINISHED,
+		WAITING,
 		HALTED,
 		ERROR,
 		NUM_STATUSES

@@ -67,19 +67,26 @@ int main()
 	while (1)
 	{
 		char bufor[20];
-		scanf("%[^\n]",bufor);
+		scanf("%[^\n]", bufor);
 // 		scanf("%[^\n]",sbuf.mtext);
 		getchar();
 
 		if ((msqid = msgget(key, 0666 )) < 0)
 			die("msgget");
 
+		int priority;
+		sscanf(bufor, "%d", &priority);
+ 		if (priority < 0 )
+			sprintf(sbuf.mtext, "%d 0 1 /home 0 650", counter);
+		else
+			sprintf(sbuf.mtext, "%d 0 %s /home 0 200", counter, bufor);
+
 
 
 // 		scanf("%s", bufor);
 // 		scanf("%s", sbuf.mtext);
 
-		sprintf(sbuf.mtext, "%d 0 %s /home 0", counter, bufor);
+
 
 		buflen = strlen(sbuf.mtext) + 1 ;
 

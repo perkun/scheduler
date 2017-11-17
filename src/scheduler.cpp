@@ -43,7 +43,8 @@ transaction<> servicesTransaction(services, "Services transaction");
 result res;
 
 void moveFromPendingToExecuting(JobList &pending_jobs, JobList &executing_jobs);
-void executeJobs(JobList &executing_jobs);
+void executeNewJobs(JobList &executing_jobs);
+void executeWaitingJobs(JobList &executing_jobs);
 void updateStatusFromCrankshaft(JobList &executing_jobs);
 void manageFinishedJobs(JobList &executing_jobs);
 void printTable(result &res);
@@ -107,7 +108,8 @@ int main() {
 
 		// w executing_jobs leżą teraz joby, które trzeba skwencyjnie od 0,1,...
 		// wysłać do wykonania na komputerze (FIFO)
-		executeJobs(executing_jobs);
+		executeWaitingJobs(executing_jobs);
+		executeNewJobs(executing_jobs);
 
 
 
@@ -193,8 +195,76 @@ void moveFromPendingToExecuting(JobList &pending_jobs, JobList &executing_jobs)
 	// 		executing jobs
 }
 
+void executeWaitingJobs(JobList &executing_jobs)
+{
+	char query[1000];
 
-void executeJobs(JobList &executing_jobs)
+	for (unsigned int i = 0; i < executing_jobs.size(); i++)
+		if (executing_jobs[i].getStatus() == Job::Status::WAITING)
+		{
+			Job *job = &executing_jobs[i];
+
+			int resources = job->getResources();
+
+			// sprawdz zasoby zablokowanego zadania
+			sprintf(query,
+					"SELECT ip, sum(resources) AS resources FROM jobs WHERE ip IN "
+					"(select ip from blocked WHERE jobid = %d) GROUP BY ip;",
+					job->getId()
+			);
+			res = servicesTransaction.exec(query);
+
+			int computer_resources = -1;
+			if (res[0]["resources"].is_null() )
+				computer_resources = 0.;
+			else
+				computer_resources = res[0]["resources"].as<int>();
+
+			// sprawdzić, czy jest dostatecznie duzo wolnych zasobow
+			if (computer_resources + resources > COMPUTER_MAX_RESOURCES)
+				continue;
+			else
+			{
+				// dodaj zadanie
+				job->setComputerIp(res[0]["ip"].as<string>());
+
+				sprintf(query, "INSERT INTO jobs "
+						"(jobid, ip, service, resources, mutatorid, priority, path)"
+						" VALUES "
+						"(%d, '%s', %d, %d, %d, %d, '%s');",
+						job->getId(),
+						job->getComputerIp().c_str(),
+						job->getService(),
+						job->getResources(),
+						job->getMutatorId(),
+						job->getPriority(),
+						job->getPath().c_str()
+				);
+
+				servicesTransaction.exec(query);
+
+				sprintf(query, "DELETE FROM blocked WHERE jobid = %d;",
+						job->getId());
+				servicesTransaction.exec(query);
+				servicesTransaction.exec("COMMIT");
+
+				job->startClock();
+
+				msq.sendMessage(
+						crankshaft_queue_id,
+						crankshaft_message_type,
+						job->getMessageToCrankshaft()
+						);
+
+				job->setStatus(Job::Status::SENT);
+			}
+
+		}
+
+
+}
+
+void executeNewJobs(JobList &executing_jobs)
 {
 	/**
 	 * Jedzie po executing_jobs i szuka tych ze statusem NEW, szuka kompa i
@@ -212,38 +282,62 @@ void executeJobs(JobList &executing_jobs)
 			// 1) oszacuj zasoby (TODO)
 			// 			executing_jobs[i].estimateResources();
 			// 			odniesc sie do bazy danych ze statystykami itp
-			int resources = 200;
-			job->setResources(resources);
+// 			job->setResources(resources);
+			int resources = job->getResources();
 
 
 			// 2) find computer with free resources
 			sprintf(query,
-					"SELECT ip, sum(resources) as resources FROM "
-					"(select ip, sum(resources) as resources FROM jobs WHERE "
+					"SELECT ip, sum(resources) AS resources FROM "
+					"(SELECT ip, sum(resources) AS resources FROM jobs WHERE "
 					"ip IN "
-					"(SELECT ip from services where service = %d)  GROUP BY ip "
+					"(SELECT ip FROM services WHERE service = %d) "
+					"GROUP BY ip "
 					"UNION "
 					"SELECT ip, null FROM services WHERE service = %d) AS a "
+				  	"WHERE ip NOT IN (SELECT ip FROM blocked) "
 					"GROUP BY ip ORDER BY resources ASC NULLS FIRST; ",
 					job->getService(),
 					job->getService()
 				   );
 			res = servicesTransaction.exec(query);
 
+			if (res.size() == 0)
+				break;
+
 
 			int computer_resources = -1;
-			// test for null
 			if (res[0]["resources"].is_null() )
-			{
-				// 				printf("value is null!\n");
 				computer_resources = 0.;
-			}
 			else
 				computer_resources = res[0]["resources"].as<int>();
 
 			// sprawdzić, czy jest dostatecznie duzo wolnych zasobow
 			if (computer_resources + resources > COMPUTER_MAX_RESOURCES)
-				break;
+			{
+				// znajdź komputer z najmniejszą ilością zadań (bo jedno zadanie
+				// uwolni duzo zasobów -> krótkie czekanie itp...)
+				// i zajmij ten komputer (dodaj do tablicy 'blocked')
+				sprintf(query,
+						"SELECT ip, count(ip) FROM jobs WHERE ip IN "
+						"(SELECT ip from services where service = %d) "
+						"AND ip NOT IN (SELECT ip FROM blocked) "
+						"GROUP BY ip ORDER BY count ASC;",
+						job->getService()
+				);
+				res = servicesTransaction.exec(query);
+
+				//zablokuj komputer
+				sprintf(query, "INSERT INTO blocked VALUES ('%s', %d);",
+					  res[0]["ip"].as<string>().c_str(), job->getId() );
+
+				res = servicesTransaction.exec(query);
+				servicesTransaction.exec("COMMIT;");
+
+				job->setStatus(Job::Status::WAITING);
+// 				break;
+				continue;
+			}
 
 			// jak mamy dostatecznie duzo zasobow, to jedziemy dalej...
 			// czyli pozyskujemy ip z DB
@@ -261,22 +355,18 @@ void executeJobs(JobList &executing_jobs)
 					job->getMutatorId(),
 					job->getPriority(),
 					job->getPath().c_str()
-
-				   );
+			);
 			res = servicesTransaction.exec(query);
 			servicesTransaction.exec("COMMIT");
 
-			// start timer
 			job->startClock();
 
-			// 3) send message to Crankshaft message queue
 			msq.sendMessage(
 					crankshaft_queue_id,
 					crankshaft_message_type,
 					job->getMessageToCrankshaft()
-					);
+			);
 
-			// and set status to SENT
 			job->setStatus(Job::Status::SENT);
 		}
 
@@ -364,6 +454,7 @@ void printTable(result &res)
 void clearJobsInDatabase()
 {
 	servicesTransaction.exec("delete from jobs;");
+	servicesTransaction.exec("delete from blocked;");
 	servicesTransaction.exec("COMMIT;");
 }
 
