@@ -31,6 +31,10 @@ vector<string> MessageQueue::readQueue(int k, long t)
 	//Receive an answer of message type 1. BEZ ZATRZASKU -> IPC_NOWAIT
 	while (1)
 	{
+		for (int i = 0; i < MAXSIZE; i++)
+			rcvbuffer.mtext[i] = 0;
+
+
 		if (msgrcv(msqid, &rcvbuffer, MAXSIZE, t, IPC_NOWAIT) < 0)
 // 		if (msgrcv(msqid, &rcvbuffer, MAXSIZE, t, 0) < 0)
 		{

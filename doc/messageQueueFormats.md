@@ -35,12 +35,13 @@
 
 ## Message queues keys and types
 
-| Mutator			  | key | type |
+| From | To   | key | type |
 | --------------------|----:|-----|
-| Mutator MessageQueue |1234|1|
-| Scheduler MessageQueue |1234|2|
-| Crankshaft MessageQueue |1234|3|
-| Manager MessageQueue |1234|4|
+| Mutator    | Scheduler  |1234|1|
+| Crankshaft | Scheduler  |1234|2|
+| Scheduler  | Crankshaft |1234|3|
+| Scheduler  | Manager    |1234|4|
+| Scheduler  | Mutator    |1234|5|
 
 
 

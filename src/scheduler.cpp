@@ -29,12 +29,15 @@ int mutator_queue_id = 1234,
 	manager_queue_id = 1234;
 
 
-long mutator_message_type = 1,
-	 scheduler_message_type = 2,
-	 crankshaft_message_type = 3,
-	 manager_message_type = 4;
+long mutator_scheduler_msgt = 1,
+	 crankshaft_scheduler_msgt = 2,
+	 scheduler_crankshaft_msgt = 3,
+	 scheduler_manager_msgt = 4,
+	 scheduler_mutator_msgt = 5;
 
 MessageQueue msq;
+
+int Job::ID = 0;
 
 
 connection services("dbname=grzeslaff user=grzeslaff password=grigori8 hostaddr=150.254.66.29 ");
@@ -65,7 +68,7 @@ int main() {
 	msq.recreate(mutator_queue_id);
 
 	// wysłać info, że sie uruchomiło
-	msq.sendMessage(manager_queue_id, manager_message_type,
+	msq.sendMessage(manager_queue_id, scheduler_manager_msgt,
 			"scheduler started");
 	// wczytać cokolwiek zalega w bazie jobs (czyli ze statusem SENT)
 	clearJobsInDatabase();
@@ -89,14 +92,14 @@ int main() {
 		}
 
 		// CONTROLL
-		for (unsigned int i = 0; i < executing_jobs.size(); i++)
-			cout << "id status: " << executing_jobs[i].getId() << " " <<
-				executing_jobs[i].getStatus() << "\n";
+// 		for (unsigned int i = 0; i < executing_jobs.size(); i++)
+// 			cout << "id status: " << executing_jobs[i].getId() << " " <<
+// 				executing_jobs[i].getStatus() << "\n";
 
 
 		// czytaj wszystkie dostępne komunikaty czekające w kolejce
 		vector<string> messages = msq.readQueue(mutator_queue_id,
-			   									mutator_message_type);
+			   									mutator_scheduler_msgt);
 		if (messages.empty())
 			printf("msqueue empty\n");
 
@@ -117,12 +120,12 @@ int main() {
 // 		printf("pending_jobs size: %u\n", pending_jobs.size());
 // 		printf("executing_jobs size: %u\n", executing_jobs.size());
 
-		printf("======= pending =======\n");
-		pending_jobs.printAll();
-		printf("=======================\n");
-		printf("====== executing ======\n");
-		executing_jobs.printAll();
-		printf("=======================\n");
+// 		printf("======= pending =======\n");
+// 		pending_jobs.printAll();
+// 		printf("=======================\n");
+// 		printf("====== executing ======\n");
+// 		executing_jobs.printAll();
+// 		printf("=======================\n");
 
 	///////////////////// USER CONTROL ///////////////////
 // 		char c = getchar();
@@ -205,6 +208,8 @@ void executeWaitingJobs(JobList &executing_jobs)
 			Job *job = &executing_jobs[i];
 
 			int resources = job->getResources();
+			if (resources == -1)
+				printf("DUUUUUPA\n");
 
 			// sprawdz zasoby zablokowanego zadania
 			sprintf(query,
@@ -213,6 +218,9 @@ void executeWaitingJobs(JobList &executing_jobs)
 					job->getId()
 			);
 			res = servicesTransaction.exec(query);
+
+			if (res.size() == 0)
+				continue;
 
 			int computer_resources = -1;
 			if (res[0]["resources"].is_null() )
@@ -252,7 +260,7 @@ void executeWaitingJobs(JobList &executing_jobs)
 
 				msq.sendMessage(
 						crankshaft_queue_id,
-						crankshaft_message_type,
+						scheduler_crankshaft_msgt,
 						job->getMessageToCrankshaft()
 						);
 
@@ -282,8 +290,9 @@ void executeNewJobs(JobList &executing_jobs)
 			// 1) oszacuj zasoby (TODO)
 			// 			executing_jobs[i].estimateResources();
 			// 			odniesc sie do bazy danych ze statystykami itp
-// 			job->setResources(resources);
 			int resources = job->getResources();
+			cout << "execNewJ: " << job->getId() << " " << resources << "\n";
+// 			job->setResources(resources);
 
 
 			// 2) find computer with free resources
@@ -363,7 +372,7 @@ void executeNewJobs(JobList &executing_jobs)
 
 			msq.sendMessage(
 					crankshaft_queue_id,
-					crankshaft_message_type,
+					scheduler_crankshaft_msgt,
 					job->getMessageToCrankshaft()
 			);
 
@@ -377,7 +386,7 @@ void updateStatusFromCrankshaft(JobList &executing_jobs)
 {
 	/// przeczytaj kolejke od crankshafta i ustaw odpowiednie statusy zadaniom
 	vector<string> messages =
-		msq.readQueue(scheduler_queue_id, scheduler_message_type);
+		msq.readQueue(scheduler_queue_id, crankshaft_scheduler_msgt);
 
 	if ( messages.empty() )
 		return;
@@ -420,7 +429,7 @@ void manageFinishedJobs(JobList &executing_jobs)
 					job->getId(),
 					job->getStatus() );
 // 					Job::Status::FINISHED );
-			msq.sendMessage(mutator_message_type, scheduler_message_type, buf);
+			msq.sendMessage(mutator_queue_id, scheduler_mutator_msgt, buf);
 
 			// stop timer
 			job->stopClock();

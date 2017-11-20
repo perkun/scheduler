@@ -8,6 +8,8 @@ Job::Job()
 	computer_ip = "unknown";
 
 	status = Status::NEW;
+
+
 }
 
 Job::Job(string msg)
@@ -24,12 +26,17 @@ Job::Job(string msg)
 
 void Job::parseMessage(string msg)
 {
+	cout << msg << "\n";
 	char buff1[1000]; //buff2[1000];
 
 	sscanf(msg.c_str(),
 		   	"%d %d %d %s %d %d",
 			&id, &mutator_id, &priority, buff1, &service, &resources);
 	path = buff1;
+
+ 	id = ID;
+	ID++;
+
 // 	program = buff2;
 
 // 	printf("service: %d\n", service);
@@ -64,7 +71,7 @@ void Job::setPriority(int p)
 double Job::estimateResources()
 {
 	// TODO
-	return 0.2;
+	return 200;
 }
 
 void Job::setComputerIp(string s)
@@ -118,7 +125,7 @@ string Job::getMessageToCrankshaft()
 	//		path
 	//		program
 
-	char buf[100];
+	char buf[1000];
 	string s;
 
 	s = computer_ip;

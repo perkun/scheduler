@@ -9,6 +9,7 @@ using namespace std;
 
 class Job
 {
+	static int ID;
 
 
 public:
@@ -46,6 +47,7 @@ public:
 	double getExecutonTimeSeconds();
 	void startClock();
 	void stopClock();
+
 
 
 	// 	enum jobType {
