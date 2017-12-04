@@ -58,7 +58,7 @@ vector<string> MessageQueue::readQueue(int k, long t)
 	return messages;
 }
 
-string MessageQueue::readMessageNowait(int k, long t)
+string MessageQueue::readMessageLock(int k, long t)
 {
 	key = k;
 	rcvbuffer.mtype = t;
@@ -79,6 +79,8 @@ string MessageQueue::readMessageNowait(int k, long t)
 
 int MessageQueue::sendMessage(int k, long t, string message)
 {
+// 	cout << k<< "\t"<<  t << "\n";
+
 	key = k;
 	rcvbuffer.mtype = t;
 

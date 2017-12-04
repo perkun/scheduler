@@ -32,7 +32,7 @@ public:
 // 	MessageQueue();
 // 	MessageQueue(int);
 	vector<string> readQueue(int k, long t);
-	string readMessageNowait(int k, long t);
+	string readMessageLock(int k, long t);
 	int sendMessage(int k, long t, string message);
 	void recreate(int k);
 	void die(const char *s);

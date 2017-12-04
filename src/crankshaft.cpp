@@ -20,6 +20,7 @@ using namespace std;
 
 long scheduler_message_type = 2;
 int scheduler_queue_id = 1234;
+int crankshaft_status_queue_id =  7000;
 
 int main () {
 
@@ -28,30 +29,38 @@ int main () {
 
 	while (1)
 	{
-		string m = msq.readMessageNowait(1234, 3);
+		string m = msq.readMessageLock(1234, 3);
 
 		pid_t pid = fork();
 		if (pid == 0)
 		{
+			char buf[100];
 			// child process
 			cout << m << "\n";
 
+
+
 			// rozczytaj komunikat
 			char computer_ip[100], path[100], program_name[100];
-			int task_id, mutator_id;
+			int  mutator_id;
+			long unique_id;
 
-			sscanf(m.c_str(), "%s %d %d %s %s", computer_ip, &task_id,
+			sscanf(m.c_str(), "%s %ld %d %s %s", computer_ip, &unique_id,
 					&mutator_id, path, program_name);
 
-			////////// RUN CORBA //////////
-			sleep(10);
-			///////////////////////////////
 
-			char buf[100];
-			sprintf(buf, "%d %d", task_id, 2);
+	////////////// RUN CORBA //////////////
+			//send message with OK status
+			msq.sendMessage(crankshaft_status_queue_id, unique_id, "0");
+
+			sleep(10);
+	///////////////////////////////////////
+
+			sprintf(buf, "%ld %d", unique_id, 2);
 			msq.sendMessage(scheduler_queue_id, scheduler_message_type,
 					buf);
 
+			cout << unique_id << "\n";
 			return 1;
 		}
 
@@ -69,7 +78,7 @@ int main () {
 // 			cout << "==============================" << "\n";
 // 		}
 //
-// 		cout << "type <task_id> <status> to finish it:";
+// 		cout << "type <unique_id> <status> to finish it:";
 //  		int id = 0, status = 0;
 //
 // 		char buf[MAXSIZE];

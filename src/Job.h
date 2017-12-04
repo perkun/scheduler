@@ -9,10 +9,9 @@ using namespace std;
 
 class Job
 {
-	static int ID;
-
-
 public:
+	static long ID;
+
 	Job();
 	Job(string);
 	void parseMessage(string);
@@ -24,8 +23,10 @@ public:
 
 	void setStatus(int);
 	int getStatus();
+	bool isStatus(int s);
 
-	int getId();
+	long getUniqueId();
+	int getTaskId();
 
 	void setResources(double);
 	int getResources();
@@ -66,6 +67,7 @@ public:
 		WAITING,
 		HALTED,
 		ERROR,
+		CORBA_ERROR,
 		NUM_STATUSES
 	};
 
@@ -80,7 +82,7 @@ protected:
 
 	int status;
 	// rzeczy z kolejki zczytane
-	int id, mutator_id, priority;
+	int unique_id, task_id, mutator_id, priority;
 	string path, program;
 
 	// do wykonywania

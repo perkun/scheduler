@@ -2,7 +2,7 @@
 
 Job::Job()
 {
-	id = mutator_id = priority = service = -1;
+	unique_id = mutator_id = priority = service = -1;
 	resources = -1;
 
 	computer_ip = "unknown";
@@ -14,7 +14,7 @@ Job::Job()
 
 Job::Job(string msg)
 {
-	id = mutator_id = priority = -1;
+	unique_id = mutator_id = priority = -1;
 	parseMessage(msg);
 
 	computer_ip = "unknown";
@@ -31,16 +31,16 @@ void Job::parseMessage(string msg)
 
 	sscanf(msg.c_str(),
 		   	"%d %d %d %s %d %d",
-			&id, &mutator_id, &priority, buff1, &service, &resources);
+			&mutator_id, &task_id, &priority, buff1, &service, &resources);
 	path = buff1;
 
- 	id = ID;
+ 	unique_id = ID;
 	ID++;
 
 // 	program = buff2;
 
 // 	printf("service: %d\n", service);
-	if (id < 0 || mutator_id < 0 || priority < 0)
+	if (task_id < 0 || mutator_id < 0 || priority < 0)
 		perror("invalid message");
 
 }
@@ -48,14 +48,14 @@ void Job::parseMessage(string msg)
 void Job::printInfo()
 {
 
-	printf("\nid: %d\nmutator_id: %d\npriority: %d\npath: %s\nprogram: %s\n",
-			id, mutator_id, priority, path.c_str(), program.c_str());
+	printf("\ntask_id: %d\nmutator_id: %d\npriority: %d\npath: %s\nprogram: %s\n",
+			task_id, mutator_id, priority, path.c_str(), program.c_str());
 
 }
 
 void Job::printIdPriority()
 {
-	printf("id: %d\tpriority: %d\n", id, priority);
+	printf("unique_id: %d\tpriority: %d\n", unique_id, priority);
 }
 
 int Job::getPriority()
@@ -120,17 +120,16 @@ string Job::getMessageToCrankshaft()
 {
 	/// returns string with:
 	//		computer_ip
-	//		task_id
+	//		job_id AKA unique_id
 	//		mutator_id
 	//		path
-	//		program
 
 	char buf[1000];
 	string s;
 
 	s = computer_ip;
 
-	sprintf(buf, " %d", id);
+	sprintf(buf, " %d", unique_id);
 	s += buf;
 
 	sprintf(buf, " %d ", mutator_id);
@@ -171,9 +170,22 @@ int Job::getStatus()
 	return status;
 }
 
-int Job::getId()
+bool Job::isStatus(int s)
 {
-	return id;
+	if (status == s)
+		return true;
+	else
+		return false;
+}
+
+long Job::getUniqueId()
+{
+	return unique_id;
+}
+
+int Job::getTaskId()
+{
+	return task_id;
 }
 
 

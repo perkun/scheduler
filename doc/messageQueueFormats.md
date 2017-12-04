@@ -8,8 +8,8 @@
 
 ## MessageQueue Mutator -> Scheduler
 
-* `int` task_id
 * `int` mutator_id
+* `int` task_id
 * `int` priority
 * `string` path
 * `int` service			// foto, radar, occ, ...
@@ -19,29 +19,30 @@
 
 * `string` computer_ip
 * `int` task_id
-* `int` mutator_id 	?????
 * `string` path
-* `string` program_name
 
 ## MessageQueue Crankshaft -> Scheduler
 
-* `int` task_id
+* `int` job_id
 * `int` status
 
 ## MessageQueue Scheduler -> Mutator
 
+* `int` job_id
+* `int` mutator_id
 * `int` task_id
-* ???
+* `int` status
 
 ## Message queues keys and types
 
 | From | To   | key | type |
-| --------------------|----:|-----|
-| Mutator    | Scheduler  |1234|1|
-| Crankshaft | Scheduler  |1234|2|
-| Scheduler  | Crankshaft |1234|3|
-| Scheduler  | Manager    |1234|4|
-| Scheduler  | Mutator    |1234|5|
+| ------------|--------|----:|-----|
+| Mutator    | Scheduler  |1000|1|
+| Scheduler  | Mutator    |1001|1|
+| Scheduler  | Crankshaft |2000|1|
+| Crankshaft | Scheduler  |2001|1|
+| Scheduler  | Manager    |1000|4|
+| corba error| Sheduler   |6000|job_id|
 
 
 
@@ -50,7 +51,7 @@
 
 ## Table jobs
 CREATE TABLE jobs (
-	jobid int,
+	jobid bigint,
 	ip inet,
 	service int,
 	resources int,
