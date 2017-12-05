@@ -17,6 +17,7 @@
 // #include "Database.h"
 
 #define MAXSIZE 128
+#define MAX_WAITING_JOBS 100
 
 using namespace std;
 using namespace pqxx;
@@ -28,27 +29,27 @@ enum Status {
 
 int COMPUTER_MAX_RESOURCES = 1600;
 
-int mutator_queue_id = 1234,
-   	crankshaft_queue_id = 1234,
-   	scheduler_queue_id = 1234,
-	manager_queue_id = 1234,
-	corba_status_queue_id = 6000,
+int mutator_scheduler_queue = 1000,
+	scheduler_mutator_queue = 1001,
+   	scheduler_crankshaft_queue = 2001,
+   	crankshaft_scheduler_queue = 2000,
+	scheduler_manager_queue = 5000,
+	mutator_status_queue = 6000,
 	crankshaft_status_queue_id =  7000;
 
-
 long mutator_scheduler_msgt = 1,
-	 crankshaft_scheduler_msgt = 2,
-	 scheduler_crankshaft_msgt = 3,
-	 scheduler_manager_msgt = 4,
-	 scheduler_mutator_msgt = 5;
+	 crankshaft_scheduler_msgt = 1,
+	 scheduler_crankshaft_msgt = 1,
+	 scheduler_manager_msgt = 1,
+	 scheduler_mutator_msgt = 1;
 
 MessageQueue msq;
 
 long Job::ID = 1;
 
 
-// connection services("dbname=grzeslaff user=grzeslaff password=grigori8 hostaddr=150.254.66.29 ");
-connection services("dbname=grzeslaff user=grzeslaff password=grigori hostaddr=127.0.0.1");
+connection services("dbname=grzeslaff user=grzeslaff password=grigori8 hostaddr=150.254.66.29 ");
+// connection services("dbname=grzeslaff user=grzeslaff password=grigori hostaddr=127.0.0.1");
 transaction<> servicesTransaction(services, "Services transaction");
 result res;
 
@@ -61,6 +62,9 @@ void printTable(result &res);
 // void takeJobsFromDatabase(JobList &executing_jobs);
 void clearJobsInDatabase();
 bool isMessageStatusOk(int k, long t);
+
+
+
 
 
 int main() {
@@ -79,16 +83,22 @@ int main() {
 	}
 
 	// wyczysc kolejke
-	msq.recreate(mutator_queue_id);
-	msq.recreate(crankshaft_status_queue_id);
+	msq.cleanQueue(mutator_scheduler_queue);
+	msq.cleanQueue(scheduler_mutator_queue);
+	msq.cleanQueue(crankshaft_scheduler_queue);
+	msq.cleanQueue(crankshaft_status_queue_id);
+	msq.cleanQueue(scheduler_crankshaft_queue);
+	msq.cleanQueue(mutator_status_queue);
+	msq.cleanQueue(scheduler_manager_queue);
 
 	// wysłać info, że sie uruchomiło
-	msq.sendMessage(manager_queue_id, scheduler_manager_msgt,
+	msq.sendMessage(scheduler_manager_queue, scheduler_manager_msgt,
 			"scheduler started");
 	// wczytać cokolwiek zalega w bazie jobs (czyli ze statusem SENT)
 	clearJobsInDatabase();
 
 
+	cout << "main loop..." << "\n";
 	//============================== MAIN LOOP: ==============================
 	while (1)
 	{
@@ -109,7 +119,7 @@ int main() {
 
 
 		// czytaj wszystkie dostępne komunikaty czekające w kolejce
-		vector<string> messages = msq.readQueue(mutator_queue_id,
+		vector<string> messages = msq.readQueue(mutator_scheduler_queue,
 			   									mutator_scheduler_msgt);
 // 		if (messages.empty())
 // 			printf("msqueue empty\n");
@@ -127,9 +137,9 @@ int main() {
 
 
 
-		printf("%u\t%u\tPendint, Executing\n",
-			   	pending_jobs.size(),
-				executing_jobs.size());
+// 		printf("%u\t%u\tPending, Executing\n",
+// 			   	pending_jobs.size(),
+// 				executing_jobs.size());
 // 		printf("%u\tpending_jobs size\n", pending_jobs.size());
 // 		printf("%u\texecuting_jobs size\n", executing_jobs.size());
 
@@ -153,7 +163,7 @@ int main() {
 // 			pending_jobs.printAll();
 // 		else if ( c == 'e' )
 // 			executing_jobs.printAll();
-		sleep(1);
+// 		sleep(1);
 
 		servicesTransaction.exec("COMMIT");
 	}
@@ -272,7 +282,7 @@ void executeWaitingJobs(JobList &executing_jobs)
 				job->startClock();
 
 				msq.sendMessage(
-						crankshaft_queue_id,
+						scheduler_crankshaft_queue,
 						scheduler_crankshaft_msgt,
 						job->getMessageToCrankshaft()
 						);
@@ -292,6 +302,18 @@ void executeNewJobs(JobList &executing_jobs)
 	 * wysyła do kolejki Crankshaftu
 	 */
 
+	// jezeli jest duzo waiting jobs, to nie ma sensu nawet sie pytac i zawalac
+	// baze danych
+	// 1) policz ile jest WAITING jobs
+// 	unsigned int c = 0;
+// 	for (unsigned int i = 0; i < executing_jobs.size(); i++)
+// 		if (executing_jobs[i].isStatus(Job::Status::WAITING))
+// 			c++;
+// 	if (c > MAX_WAITING_JOBS)
+// 		return;
+
+
+
 	char query[1000];
 
 	// KOLEJKA FIFO, zdejmujemy (ustawiamy status SENT) z kolejki
@@ -300,11 +322,8 @@ void executeNewJobs(JobList &executing_jobs)
 		{
 			Job *job = &executing_jobs[i];
 
-			// 1) oszacuj zasoby (TODO)
-			// 			executing_jobs[i].estimateResources();
-			// 			odniesc sie do bazy danych ze statystykami itp
 			int resources = job->getResources();
-			cout << "execNewJ: " << job->getUniqueId() << " " << resources << "\n";
+// 			cout << "execNewJ: " << job->getUniqueId() << " " << resources << "\n";
 // 			job->setResources(resources);
 
 
@@ -324,7 +343,8 @@ void executeNewJobs(JobList &executing_jobs)
 				   );
 			res = servicesTransaction.exec(query);
 
-			if (res.size() == 0)
+
+			if (res.size() == 0) // brak komputerow do zablokowania nawet
 				break;
 
 
@@ -338,16 +358,18 @@ void executeNewJobs(JobList &executing_jobs)
 
 			// wiadomosc do Crankshafta
 			msq.sendMessage(
-					crankshaft_queue_id,
+					scheduler_crankshaft_queue,
 					scheduler_crankshaft_msgt,
 					job->getMessageToCrankshaft()
 			);
+
+
 
 			// sprawdz ino czy Crankshaft wyslal zadanie na kompa
 			if (isMessageStatusOk(
 						crankshaft_status_queue_id, job->getUniqueId()))
 			{
-
+				cout << "message OK for NEW job "<< job->getUniqueId() << "\n";
 				job->setStatus(Job::Status::SENT);
 				job->startClock();
 			}
@@ -357,6 +379,11 @@ void executeNewJobs(JobList &executing_jobs)
 				return;
 			}
 
+
+
+
+			job->setStatus(Job::Status::SENT);
+			job->startClock();
 
 			// sprawdzić, czy jest dostatecznie duzo wolnych zasobow
 			if (computer_resources + resources <= COMPUTER_MAX_RESOURCES)
@@ -421,13 +448,16 @@ bool isMessageStatusOk(int k, long t)
 	int status = -1;
 	sscanf(message.c_str(), "%d", &status);
 
+// 	status = 0;
+
 	if (status != Status::OK)
 	{
-		cout << "error: "<<status<< " from Crankshaft for job " << "\n";
+		cout << "error: status "<<status<< " from Crankshaft" << "\n";
 		return false;
 	}
 	else
 		return true;
+
 
 }
 
@@ -435,7 +465,7 @@ void updateStatusFromCrankshaft(JobList &executing_jobs)
 {
 	/// przeczytaj kolejke od crankshafta i ustaw odpowiednie statusy zadaniom
 	vector<string> messages =
-		msq.readQueue(scheduler_queue_id, crankshaft_scheduler_msgt);
+		msq.readQueue(crankshaft_scheduler_queue, crankshaft_scheduler_msgt);
 
 	if ( messages.empty() )
 		return;
@@ -474,26 +504,33 @@ void manageFinishedJobs(JobList &executing_jobs)
 		{
 			// send message to mutator
 			sprintf(buf,
-				   	"%ld %d",
+				   	"%ld %d %d %d",
 					job->getUniqueId(),
+					job->getMutatorId(),
+					job->getTaskId(),
 					job->getStatus() );
 // 					Job::Status::FINISHED );
-			msq.sendMessage(mutator_queue_id, scheduler_mutator_msgt, buf);
 
+			msq.sendMessage(scheduler_mutator_queue, scheduler_mutator_msgt, buf);
 
+			// sprawdz ino czy manager wyslal zadanie na kompa
+			if (isMessageStatusOk(mutator_status_queue, job->getUniqueId()))
+			{
+				cout << "FINISHED JOB "<<job->getUniqueId()<< ": "<< buf << "\n";
 
-			// stop timer
-			job->stopClock();
+				// stop timer
+				job->stopClock();
 
-			// release resources (DataBase)
-			sprintf(query, "DELETE FROM jobs WHERE jobid=%ld",
-					job->getUniqueId() );
-			servicesTransaction.exec(query);
-			servicesTransaction.exec("COMMIT");
+				// release resources (DataBase)
+				sprintf(query, "DELETE FROM jobs WHERE jobid=%ld",
+						job->getUniqueId() );
+				servicesTransaction.exec(query);
+				servicesTransaction.exec("COMMIT");
 
-			// remove from the list
-			executing_jobs.erase(job_index);
-			job_index--;
+				// remove from the list
+				executing_jobs.erase(job_index);
+				job_index--;
+			}
 		}
 	}
 

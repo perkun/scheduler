@@ -60,6 +60,9 @@ vector<string> MessageQueue::readQueue(int k, long t)
 
 string MessageQueue::readMessageLock(int k, long t)
 {
+	for (int i = 0; i < MAXSIZE; i++)
+		rcvbuffer.mtext[i] = 0;
+
 	key = k;
 	rcvbuffer.mtype = t;
 
@@ -72,6 +75,8 @@ string MessageQueue::readMessageLock(int k, long t)
 		die("msgrcv");
 	else
 		message = rcvbuffer.mtext;
+
+	cout << "MESSAGE_LOCK key="<<k<<" type="<<t<<" text="<< rcvbuffer.mtext << "\n";
 
 	return message;
 }
@@ -117,4 +122,9 @@ void MessageQueue::recreate(int k)
 
 	printf("creating new queue\n");
 	msqid = msgget(key, msgflg);
+}
+
+void MessageQueue::cleanQueue(int k)
+{
+	readQueue(k, 0);
 }

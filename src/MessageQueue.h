@@ -24,8 +24,6 @@ struct MessageBuffer
 };
 
 
-
-
 class MessageQueue
 {
 public:
@@ -36,6 +34,7 @@ public:
 	int sendMessage(int k, long t, string message);
 	void recreate(int k);
 	void die(const char *s);
+	void cleanQueue(int k);
 
 	struct MessageBuffer rcvbuffer;
 

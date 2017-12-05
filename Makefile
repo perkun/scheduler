@@ -13,7 +13,7 @@ OBJS = $(BUILD)/Job.o $(BUILD)/JobList.o $(BUILD)/MessageQueue.o $(BUILD)/schedu
 
 
 
-all: $(BIN)/scheduler $(BIN)/mqSend $(BIN)/crankshaft
+all: $(BIN)/scheduler $(BIN)/mqSend $(BIN)/crankshaft $(BIN)/msqtest
 
 
 #################### EXECUTABLES ####################
@@ -22,6 +22,9 @@ $(BIN)/scheduler: $(OBJS)
 
 $(BIN)/crankshaft: $(BUILD)/crankshaft.o $(BUILD)/MessageQueue.o
 		$(CC) $(LFLAGS) $(BUILD)/crankshaft.o $(BUILD)/MessageQueue.o  -o $(BIN)/crankshaft
+
+$(BIN)/msqtest: $(BUILD)/msqtest.o $(BUILD)/MessageQueue.o
+		$(CC) $(LFLAGS) $(BUILD)/msqtest.o $(BUILD)/MessageQueue.o  -o $(BIN)/msqtest
 
 $(BIN)/mqSend:
 		gcc src/mqSend.c -o bin/mqSend
@@ -33,6 +36,9 @@ $(BUILD)/crankshaft.o: $(SRC)/crankshaft.cpp $(SRC)/MessageQueue.h
 		@mkdir -p $(BUILD)
 		$(CC) $(CFLAGS) $(SRC)/crankshaft.cpp -o $(BUILD)/crankshaft.o
 
+$(BUILD)/msqtest.o: $(SRC)/msqtest.cpp $(SRC)/MessageQueue.h
+		@mkdir -p $(BUILD)
+		$(CC) $(CFLAGS) $(SRC)/msqtest.cpp -o $(BUILD)/msqtest.o
 
 $(BUILD)/scheduler.o: $(SRC)/scheduler.cpp $(SRC)/MessageQueue.h $(SRC)/Job.h $(SRC)/JobList.h
 		@mkdir -p $(BUILD)

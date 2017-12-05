@@ -18,8 +18,8 @@
 using namespace std;
 
 
-long scheduler_message_type = 2;
-int scheduler_queue_id = 1234;
+long scheduler_message_type = 1;
+int scheduler_queue_id = 2000;
 int crankshaft_status_queue_id =  7000;
 
 int main () {
@@ -29,7 +29,7 @@ int main () {
 
 	while (1)
 	{
-		string m = msq.readMessageLock(1234, 3);
+		string m = msq.readMessageLock(2000, 1);
 
 		pid_t pid = fork();
 		if (pid == 0)
@@ -51,14 +51,13 @@ int main () {
 
 	////////////// RUN CORBA //////////////
 			//send message with OK status
-			msq.sendMessage(crankshaft_status_queue_id, unique_id, "0");
+			msq.sendMessage(7000, unique_id, "0");
 
-			sleep(10);
+			sleep(7);
 	///////////////////////////////////////
 
 			sprintf(buf, "%ld %d", unique_id, 2);
-			msq.sendMessage(scheduler_queue_id, scheduler_message_type,
-					buf);
+			msq.sendMessage(2001, 1, buf);
 
 			cout << unique_id << "\n";
 			return 1;

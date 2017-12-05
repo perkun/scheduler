@@ -26,7 +26,7 @@ Job::Job(string msg)
 
 void Job::parseMessage(string msg)
 {
-	cout << msg << "\n";
+// 	cout << msg << "\n";
 	char buff1[1000]; //buff2[1000];
 
 	sscanf(msg.c_str(),
@@ -135,11 +135,11 @@ string Job::getMessageToCrankshaft()
 	sprintf(buf, " %d ", mutator_id);
 	s += buf;
 
-	s += path + " " + program ;
+	s += path;
 
 	// SPACJE !!!!!!!
 
-	cout << s << "\n";
+// 	cout << s << "\n";
 	return s;
 }
 
