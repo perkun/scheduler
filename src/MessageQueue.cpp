@@ -50,9 +50,8 @@ vector<string> MessageQueue::readQueue(int k, long t)
 		{
 			string buff = rcvbuffer.mtext;
 			messages.push_back(buff);
-
+			cout << "MESSAGE_ALL key="<<k<<" type="<<t<<" text="<< rcvbuffer.mtext << "\n";
 			// 	printf("%s\n", rcvbuffer.mtext);
-
 		}
 	}
 	return messages;
@@ -101,6 +100,8 @@ int MessageQueue::sendMessage(int k, long t, string message)
 		printf ("%d, %ld, %s, %lu\n", msqid, rcvbuffer.mtype, rcvbuffer.mtext, buflen);
 		die("sendMessage failed");
 	}
+
+	cout << "SENDING key="<<k<<" type="<<t<<" : " << rcvbuffer.mtext << "\n";
 
 
 	return 0;

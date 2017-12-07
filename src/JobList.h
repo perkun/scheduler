@@ -22,6 +22,7 @@ public:
 	int getPriorityIndex(int);
 	void erase(int);
 	Job getJobAtIndex(int);
+	Job* getPointerAt(int);
 	void printAll();
 	void clear();
 	unsigned int size();

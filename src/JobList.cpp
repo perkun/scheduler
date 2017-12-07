@@ -57,6 +57,11 @@ Job JobList::getJobAtIndex(int index)
 	return jobs[index];
 }
 
+Job* JobList::getPointerAt(int index)
+{
+	return &jobs[index];
+}
+
 void JobList::printAll()
 {
 	for (Job j: jobs)
