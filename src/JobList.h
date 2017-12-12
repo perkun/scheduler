@@ -19,7 +19,7 @@ public:
 	void pushBackFromMessages( vector<string> &messages);
 	void pushBack( Job );
 	int getMaxPriority();
-	int getPriorityIndex(int);
+	int findIndexWithPriority(int);
 	void erase(int);
 	Job getJobAtIndex(int);
 	Job* getPointerAt(int);

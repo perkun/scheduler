@@ -20,6 +20,8 @@ void MessageQueue::die(const char *s)
 vector<string> MessageQueue::readQueue(int k, long t)
 {
 // 	printf("reading queue\n");
+	struct MessageBuffer rcvbuffer;
+
 	key = k;
 	rcvbuffer.mtype = t;
 
@@ -59,6 +61,7 @@ vector<string> MessageQueue::readQueue(int k, long t)
 
 string MessageQueue::readMessageLock(int k, long t)
 {
+	struct MessageBuffer rcvbuffer;
 	for (int i = 0; i < MAXSIZE; i++)
 		rcvbuffer.mtext[i] = 0;
 
@@ -84,6 +87,7 @@ string MessageQueue::readMessageLock(int k, long t)
 int MessageQueue::sendMessage(int k, long t, string message)
 {
 // 	cout << k<< "\t"<<  t << "\n";
+	struct MessageBuffer rcvbuffer;
 
 	key = k;
 	rcvbuffer.mtype = t;

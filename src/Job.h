@@ -7,9 +7,37 @@
 
 using namespace std;
 
+
 class Job
 {
 public:
+
+	enum class Status : int {
+		NEW = 0,
+		SENT,
+		FINISHED,
+		WAITING,
+		HALTED,
+		ERROR,
+		NUM_STATUSES
+	};
+
+	enum class Service : int {
+		FOTO = 0,
+		RADAR
+	};
+
+	enum class Type : int {
+		NORMAL = 0,
+		ESTIMATE_RESOURCES
+	};
+
+	enum class CrancshaftStatus : int {
+		OK = 0,
+		ERROR,
+		NUM_STAUTSES
+	};
+
 	static long ID;
 
 	Job();
@@ -21,21 +49,24 @@ public:
 	void setPriority(int);
 	int getPriority();
 
-	void setStatus(int);
-	int getStatus();
-	bool isStatus(int s);
+	void setStatus(Status);
+	Status getStatus();
+	bool isStatus(Status s);
+
+	bool isType(Type t);
 
 	long getUniqueId();
 	int getTaskId();
 
-	void setResources(double);
+	void setResources(int);
 	int getResources();
+	int estimateResources(int MAX);
 
 	void setComputerIp(string);
 	void setComputerIp(const char *);
 	string getComputerIp();
 
-	int getService();
+	Service getService();
 
 	int getMutatorId();
 
@@ -43,7 +74,6 @@ public:
 
 	string getMessageToCrankshaft();
 
-	double estimateResources();
 
 	double getExecutonTimeSeconds();
 	void startClock();
@@ -51,44 +81,21 @@ public:
 
 
 
-	// 	enum jobType {
-	// 		PHOTOMETRY,
-	// 		RADAR,
-	// 		OCCULT,
-	// 		BALANING
-	// 	};
-
-	enum Status {
-		NEW,
-// 		PENDING,		// ???
-// 		EXECUTING,		// ???
-		SENT,
-		FINISHED,
-		WAITING,
-		HALTED,
-		ERROR,
-		CORBA_ERROR,
-		NUM_STATUSES
-	};
-
-	enum Service {
-		FOTO,
-		RADAR
-	};
-
 
 protected:
 	time_t start, end;
 
-	int status;
+	Status status;
+	Type type;
 	// rzeczy z kolejki zczytane
-	int unique_id, task_id, mutator_id, priority;
+	int task_id, mutator_id, priority;
+	long unique_id;
 	string path, program;
 
 	// do wykonywania
 	// time start, stop
 	int resources;
-	int service;
+	Service service;
 	string computer_ip;
 
 

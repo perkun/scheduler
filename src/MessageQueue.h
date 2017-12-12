@@ -36,7 +36,7 @@ public:
 	void die(const char *s);
 	void cleanQueue(int k);
 
-	struct MessageBuffer rcvbuffer;
+// 	struct MessageBuffer rcvbuffer;
 
     int msqid;
     key_t key;

@@ -2,20 +2,28 @@
 
 Job::Job()
 {
-	unique_id = mutator_id = priority = service = -1;
-	resources = -1;
+	unique_id = mutator_id = priority =  -1;
+	resources = 0;
 
 	computer_ip = "unknown";
 
 	status = Status::NEW;
-
-
+	type = Type::NORMAL;
 }
 
 Job::Job(string msg)
 {
+
 	unique_id = mutator_id = priority = -1;
 	parseMessage(msg);
+
+	if (resources < 0)
+	{
+		type = Type::ESTIMATE_RESOURCES;
+	}
+	else
+		type = Type::NORMAL;
+
 
 	computer_ip = "unknown";
 
@@ -29,10 +37,13 @@ void Job::parseMessage(string msg)
 // 	cout << msg << "\n";
 	char buff1[1000]; //buff2[1000];
 
+	int s;
 	sscanf(msg.c_str(),
 		   	"%d %d %d %s %d %d",
-			&mutator_id, &task_id, &priority, buff1, &service, &resources);
+			&mutator_id, &task_id, &priority, buff1, &s, &resources);
 	path = buff1;
+
+	service = (Job::Service) s;
 
  	unique_id = ID;
 	ID++;
@@ -55,7 +66,7 @@ void Job::printInfo()
 
 void Job::printIdPriority()
 {
-	printf("unique_id: %d\tpriority: %d\n", unique_id, priority);
+	printf("unique_id: %ld\tpriority: %d\n", unique_id, priority);
 }
 
 int Job::getPriority()
@@ -68,10 +79,15 @@ void Job::setPriority(int p)
 	priority = p;
 }
 
-double Job::estimateResources()
+int Job::estimateResources(int MAX)
 {
-	// TODO
-	return 200;
+	if (isType(Type::ESTIMATE_RESOURCES))
+	{
+		resources = MAX;
+		return MAX;
+	}
+	else
+		return resources;
 }
 
 void Job::setComputerIp(string s)
@@ -89,7 +105,7 @@ string Job::getComputerIp()
 	return computer_ip;
 }
 
-int Job::getService()
+Job::Service Job::getService()
 {
 	return service;
 }
@@ -99,7 +115,7 @@ int Job::getMutatorId()
 	return mutator_id;
 }
 
-void Job::setResources(double r)
+void Job::setResources(int r)
 {
 	resources = r;
 }
@@ -129,7 +145,7 @@ string Job::getMessageToCrankshaft()
 
 	s = computer_ip;
 
-	sprintf(buf, " %d", unique_id);
+	sprintf(buf, " %ld", unique_id);
 	s += buf;
 
 	sprintf(buf, " %d ", mutator_id);
@@ -160,19 +176,28 @@ void Job::stopClock()
 }
 
 
-void Job::setStatus(int s)
+void Job::setStatus(Status s)
 {
 	status = s;
 }
 
-int Job::getStatus()
+Job::Status Job::getStatus()
 {
 	return status;
 }
 
-bool Job::isStatus(int s)
+
+bool Job::isStatus(Status s)
 {
 	if (status == s)
+		return true;
+	else
+		return false;
+}
+
+bool Job::isType(Type t)
+{
+	if (type == t)
 		return true;
 	else
 		return false;

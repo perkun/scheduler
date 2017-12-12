@@ -5,7 +5,7 @@ BIN = bin
 
 CFLAGS = -g -c -std=c++11 -Wall
 LFLAGS = -g -Wall -std=c++11
-LIBS = -lpqxx
+LIBS = -lpqxx -lncurses
 
 
 

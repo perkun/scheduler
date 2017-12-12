@@ -8,7 +8,6 @@ Job& JobList::operator[](int index)
 
 void JobList::pushBackFromMessages(vector<string> &messages)
 {
-
 	for (auto m: messages)
 		jobs.push_back( Job(m) );
 }
@@ -37,7 +36,7 @@ void JobList::clear()
 	jobs.clear();
 }
 
-int JobList::getPriorityIndex(int priority)
+int JobList::findIndexWithPriority(int priority)
 {
 	for (unsigned int i = 0; i < jobs.size(); i++)
 	{
