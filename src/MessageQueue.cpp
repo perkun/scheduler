@@ -6,6 +6,19 @@ void MessageQueue::die(const char *s)
 	exit(1);
 }
 
+MessageQueue::MessageQueue()
+{
+// 	logfile = fopen("messageQueue.log", "a");
+// 	fprintf(logfile, "########## START ########## \n");
+
+	num_received = 0;
+}
+
+MessageQueue::~MessageQueue()
+{
+// 	fclose(logfile);
+}
+
 
 // MessageQueue::MessageQueue(int k)
 // {
@@ -19,56 +32,71 @@ void MessageQueue::die(const char *s)
 
 vector<string> MessageQueue::readQueue(int k, long t)
 {
-// 	printf("reading queue\n");
-	struct MessageBuffer rcvbuffer;
-
-	key = k;
-	rcvbuffer.mtype = t;
-
 	vector<string> messages;
+	struct msqid_ds	queue_stats;
+
+	logfile = fopen("messageQueue.log", "a");
+	key = k;
 
 	if ((msqid = msgget(key, 0666)) < 0)
 		die("readQueue");
 
-	//Receive an answer of message type 1. BEZ ZATRZASKU -> IPC_NOWAIT
-	while (1)
+	if (msgctl(msqid, IPC_STAT, &queue_stats) < 0)
+		return messages;
+
+	if (queue_stats.__msg_cbytes >= (unsigned long) queue_stats.msg_qbytes)
+		fprintf(logfile, "BYTES: using:%ld max:%ld \n",
+				queue_stats.__msg_cbytes,
+				(unsigned long) queue_stats.msg_qbytes);
+
+
+	for (int i = 0; i < (int)queue_stats.msg_qnum; i++)
 	{
-		for (int i = 0; i < MAXSIZE; i++)
-			rcvbuffer.mtext[i] = 0;
+		struct MessageBuffer rcvbuffer;
+		rcvbuffer.mtype = t;
+		memset(rcvbuffer.mtext, '\0', sizeof rcvbuffer.mtext);
 
-
-		if (msgrcv(msqid, &rcvbuffer, MAXSIZE, t, IPC_NOWAIT) < 0)
-// 		if (msgrcv(msqid, &rcvbuffer, MAXSIZE, t, 0) < 0)
+		int status;
+		status = msgrcv(msqid, &rcvbuffer, MAXSIZE, t, 0);
+		if (status < 0)
 		{
 			if (errno == ENOMSG)
 			{
 				// 	printf("!!! no messages, continuing...\n");
+				fprintf(logfile, "no messages, continuing\n");
 				break;
 			}
 			else
 				die("msgrcv");
 		}
+		else if (status == 0)
+			cout << "message status = 0" << "\n";
 		else
 		{
+			num_received++;
 			string buff = rcvbuffer.mtext;
+
 			messages.push_back(buff);
-			cout << "MESSAGE_ALL key="<<k<<" type="<<t<<" text="<< rcvbuffer.mtext << "\n";
-			// 	printf("%s\n", rcvbuffer.mtext);
+			fprintf(logfile, "READ_PCKG key=%d, t=%ld |%s|l=%d,n_r=%d\n",
+				   	key, t, rcvbuffer.mtext, status, num_received);
 		}
 	}
+	fclose(logfile);
 	return messages;
 }
 
 string MessageQueue::readMessageLock(int k, long t)
 {
 	struct MessageBuffer rcvbuffer;
-	for (int i = 0; i < MAXSIZE; i++)
-		rcvbuffer.mtext[i] = 0;
+// 	for (int i = 0; i < MAXSIZE; i++)
+// 		rcvbuffer.mtext[i] = '\0';
+	memset(rcvbuffer.mtext, '\0', sizeof rcvbuffer.mtext);
 
 	key = k;
 	rcvbuffer.mtype = t;
 
 	string message;
+	message.clear();
 
 	if ((msqid = msgget(key, 0666)) < 0)
 		die("readQueue");
@@ -78,8 +106,10 @@ string MessageQueue::readMessageLock(int k, long t)
 	else
 		message = rcvbuffer.mtext;
 
-	cout << "MESSAGE_LOCK key="<<k<<" type="<<t<<" text="<< rcvbuffer.mtext << "\n";
+// 	cout << "MESSAGE_LOCK key="<<k<<" type="<<t<<" text="<< rcvbuffer.mtext << "\n";
+// 	fprintf(logfile, "READ_LOCK key=%d, t=%ld |%s\n", key, t, message.c_str());
 
+// 	num_received++;
 	return message;
 }
 
@@ -88,6 +118,9 @@ int MessageQueue::sendMessage(int k, long t, string message)
 {
 // 	cout << k<< "\t"<<  t << "\n";
 	struct MessageBuffer rcvbuffer;
+// 	for (int i = 0; i < MAXSIZE; i++)
+// 		rcvbuffer.mtext[i] = '\0';
+	memset(rcvbuffer.mtext, '\0', sizeof rcvbuffer.mtext);
 
 	key = k;
 	rcvbuffer.mtype = t;
@@ -105,8 +138,10 @@ int MessageQueue::sendMessage(int k, long t, string message)
 		die("sendMessage failed");
 	}
 
-	cout << "SENDING key="<<k<<" type="<<t<<" : " << rcvbuffer.mtext << "\n";
+// 	fprintf(logfile, "SENDING   key=%d, t=%ld |%s\n", key, t, message.c_str());
+// 	cout << "SENDING key="<<k<<" type="<<t<<" : " << rcvbuffer.mtext << "\n";
 
+	num_sent++;
 
 	return 0;
 }

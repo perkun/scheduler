@@ -24,10 +24,21 @@
 using namespace std;
 using namespace pqxx;
 
-// enum Status {
-// 	OK,
-// 	ERROR
-// };
+void moveFromPendingToExecuting(JobList &pending_jobs, JobList &executing_jobs);
+void executeNewJobs(JobList &executing_jobs);
+void executeWaitingJobs(JobList &executing_jobs);
+void updateStatusFromCrankshaft(JobList &executing_jobs);
+void manageFinishedJobs(JobList &executing_jobs);
+void printTable(result &res);
+// void takeJobsFromDatabase(JobList &executing_jobs);
+void clearJobsInDatabase();
+bool isMessageStatusOk(int k, long t);
+void insertIntoJobs(Job *job);
+void deleteFromBlocked(Job *job);
+pqxx::result selectFreeComputer(Job::Service s);
+int blockedComputerResources(long unique_id);
+void insertIntoBlocked(string ip, long unique_id);
+string findLeastOccupiedComputerIp(Job::Service s);
 
 int COMPUTER_MAX_RESOURCES = 1900;
 
@@ -45,32 +56,18 @@ long mutator_scheduler_msgt = 1,
 	 scheduler_manager_msgt = 1,
 	 scheduler_mutator_msgt = 1;
 
+
 MessageQueue msq;
 
 long Job::ID = 1;
+
+map<int, vector<Job> >::reverse_iterator current_iterator;
+int current_priority_counter = 0;
 
 
 connection services("dbname=grzeslaff user=grzeslaff password=grigori8 hostaddr=150.254.66.29 ");
 // connection services("dbname=grzeslaff user=grzeslaff password=grigori hostaddr=127.0.0.1");
 nontransaction servicesTransaction(services, "Services transaction");
-// result res;
-
-void moveFromPendingToExecuting(JobList &pending_jobs, JobList &executing_jobs);
-void executeNewJobs(JobList &executing_jobs);
-void executeWaitingJobs(JobList &executing_jobs);
-void updateStatusFromCrankshaft(JobList &executing_jobs);
-void manageFinishedJobs(JobList &executing_jobs);
-void printTable(result &res);
-// void takeJobsFromDatabase(JobList &executing_jobs);
-void clearJobsInDatabase();
-bool isMessageStatusOk(int k, long t);
-
-void insertIntoJobs(Job *job);
-void deleteFromBlocked(Job *job);
-pqxx::result selectFreeComputer(Job::Service s);
-int blockedComputerResources(long unique_id);
-void insertIntoBlocked(string ip, long unique_id);
-string findLeastOccupiedComputerIp(Job::Service s);
 
 
 int main() {
@@ -91,9 +88,9 @@ int main() {
 		cout << "not able to connect to database" << endl;
 	}
 
-// 	JobList *pending_jobs = new JobList;
-// 	JobList *executing_jobs = new JobList;
-	JobList pending_jobs, executing_jobs;
+	JobList executing_jobs;
+	current_iterator = executing_jobs.rbegin();
+	current_priority_counter = 0;
 
 	// wyczysc kolejke
 	msq.cleanQueue(mutator_scheduler_queue);
@@ -107,6 +104,8 @@ int main() {
 	// wysłać info, że sie uruchomiło
 	msq.sendMessage(scheduler_manager_queue, scheduler_manager_msgt,
 			"scheduler started");
+	msq.num_received = 0;
+
 	// wczytać cokolwiek zalega w bazie jobs (czyli ze statusem SENT)
 	clearJobsInDatabase();
 
@@ -134,17 +133,37 @@ int main() {
 		   	msq.readQueue(mutator_scheduler_queue, mutator_scheduler_msgt);
 
 		// wyślij je na koniec kolejki zadań
-		pending_jobs.pushBackFromMessages(messages);
+		executing_jobs.pushBackFromMessages(messages);
 
-		// priorytetowanie
-		if (executing_jobs.size() <= MAX_EXECUTING_JOBS)
-			moveFromPendingToExecuting(pending_jobs, executing_jobs);
 
 		executeWaitingJobs(executing_jobs);
 		executeNewJobs(executing_jobs);
 
+
+		int num_sent = 0, num_waiting = 0, num_error = 0;
+		cout << "pr:sum,s,w" << "\t";
+		map<int, vector<Job> >::iterator it;
+		for (it = executing_jobs.begin(); it != executing_jobs.end(); it++)
+		{
+			cout << it->first<<":"<< it->second.size() << "\t";
+// 			int num_sent = 0, num_waiting = 0;
+			for (unsigned int i = 0; i < it->second.size(); i++)
+			{
+				if (it->second[i].isStatus(Job::Status::SENT))
+					num_sent++;
+				if (it->second[i].isStatus(Job::Status::WAITING))
+					num_waiting++;
+				if (it->second[i].isStatus(Job::Status::ERROR))
+					num_error++;
+			}
+// 			cout << it->first <<":"<< it->second.size() <<","<<num_sent
+// 				<<","<<num_waiting << " \t ";
+		}
+// 		cout << "s,r:"<<num_sent<<" "<< num_received ;
+		cout << "\n";
+
 // 		sleep(1);
-		usleep(513932);			// in MICROSECONDS
+		usleep(213932);			// in MICROSECONDS
 	}
 
 
@@ -157,52 +176,61 @@ int main() {
 }
 
 
-void moveFromPendingToExecuting(JobList &pending_jobs, JobList &executing_jobs)
-{
-	/** bierze pending_jobs i wrzuca do executing_jobs w kolejności zależnej od
-	 * priorytetów. Zadania z priorytetm x pojawią się x razy. Nie wszystkie
-	 * zadanie zostaną przełożone; tylko $$ Sum_{i}^{i=x} i $$
-	 */
-
-	map<int, int> priority_counter;
-
-	int maximum = pending_jobs.getMaxPriority();
-
-	while (maximum > 0)
-	{
-		if (priority_counter[maximum] < maximum)
-		{
-			// find index of a job in pending_jobs with priority==maximum
-			int max_index = pending_jobs.findIndexWithPriority(maximum);
-
-			if (max_index == -1) // flaga na nieznalezienie
-			{
-				maximum--;
-				continue;
-			}
-
-			// add to executing jobs.
-			executing_jobs.pushBack( pending_jobs.getJobAtIndex(max_index) );
-			// remove from pending jobs
-			pending_jobs.erase(max_index);
-
-			priority_counter[maximum]++;
-		}
-		else
-			maximum--;
-	}
-}
+// void moveFromPendingToExecuting(JobList &pending_jobs, JobList &executing_jobs)
+// {   /** bierze pending_jobs i wrzuca do executing_jobs w kolejności zależnej od
+// 	 * priorytetów. Zadania z priorytetm x pojawią się x razy. Nie wszystkie
+// 	 * zadanie zostaną przełożone; tylko $$ Sum_{i}^{i=x} i $$
+// 	 */
+// //
+// 	map<int, int> priority_counter;
+// //
+// 	int maximum = pending_jobs.getMaxPriority();
+// //
+// 	while (maximum > 0)
+// 	{
+// 		if (priority_counter[maximum] < maximum)
+// 		{
+// 			// find index of a job in pending_jobs with priority==maximum
+// 			int max_index = pending_jobs.findIndexWithPriority(maximum);
+// //
+// 			if (max_index == -1) // flaga na nieznalezienie
+// 			{
+// 				maximum--;
+// 				continue;
+// 			}
+// //
+// 			// add to executing jobs.
+// 			executing_jobs.pushBack( pending_jobs.getJobAtIndex(max_index) );
+// 			// remove from pending jobs
+// 			pending_jobs.erase(max_index);
+// //
+// 			priority_counter[maximum]++;
+// 		}
+// 		else
+// 			maximum--;
+// 	}
+// }
 
 void executeWaitingJobs(JobList &executing_jobs)
 {
-	for (unsigned int i = 0; i < executing_jobs.size(); i++)
-		if (executing_jobs[i].isStatus(Job::Status::WAITING) )
+// 	for (unsigned int i = 0; i < executing_jobs.size(); i++)
+// 		if (executing_jobs[i].isStatus(Job::Status::WAITING) )
+
+
+	// Przeczesanie całej mapy jobs: podwójna petla najpierw po priorytecie,
+	// potem po indeksie
+
+	map<int, vector<Job> >::iterator it;
+	for (it = executing_jobs.begin(); it != executing_jobs.end(); it++)
+	for (unsigned int i = 0; i < it->second.size(); i++)
+		if (it->second[i].isStatus(Job::Status::WAITING) )
 		{
-			Job *job = &executing_jobs[i];
+			// 		Job *job = &executing_jobs[i];
+			Job *job = &it->second[i];
 
 			int resources = job->getResources();
 
-			int computer_resources = // sprawdz zasoby zablokowanego komputera
+			int computer_resources =	//sprawdz zasoby zablokowanego komputera
 				blockedComputerResources(job->getUniqueId());
 
 			// sprawdzić, czy jest dostatecznie duzo wolnych zasobow
@@ -221,7 +249,6 @@ void executeWaitingJobs(JobList &executing_jobs)
 
 				if (status_message == "0")
 				{
-					//cout << "message OK for NEW job "<< job->getUniqueId() << "\n";
 					job->setStatus(Job::Status::SENT);
 					job->startClock();
 					insertIntoJobs(job);
@@ -268,25 +295,43 @@ void executeNewJobs(JobList &executing_jobs)
 	 * wysyła do kolejki Crankshaftu
 	 */
 
-	// jak jest za duzo WAITING JOBS to nie ma sensu jechać dalej...
-	unsigned int c = 0;
-	for (unsigned int i = 0; i < executing_jobs.size(); i++)
-		if (executing_jobs[i].isStatus(Job::Status::WAITING))
-			c++;
-	if (c > MAX_WAITING_JOBS)
-		return;
+	if (executing_jobs.size() == 0 ) // MUSI BYĆ, BO current_iterator musi byc
+	{								 // dobrze zdefiniowany, a jak puste jest
+		return;						 // to niestety nie jest i seg fault
+	}
 
-	for (unsigned int i = 0; i < executing_jobs.size(); i++)
-		if (executing_jobs[i].isStatus(Job::Status::NEW) )
+
+	// Priorytetowanie na bierząco tutej bydzie...
+	map<int, int> priority_counter;
+	map<int, vector<Job> >::reverse_iterator it;
+
+	priority_counter[current_iterator->first] = current_priority_counter;
+
+	for (it = current_iterator; it != executing_jobs.rend(); ++it)
+	for (unsigned int i = 0; i < it->second.size(); i++)
+		if (it->second[i].isStatus(Job::Status::NEW) )
 		{
-			Job *job = &executing_jobs[i];
+
+
+			if (priority_counter[it->first] >= it->first
+				&& executing_jobs.findMaxPriority() > 1)
+				break;
+
+
+			Job *job = &it->second[i];
 
 			int resources = job->estimateResources(COMPUTER_MAX_RESOURCES);
 
 			result res = selectFreeComputer(job->getService());
 
 			if (res.size() == 0) // brak komputerow do zablokowania nawet
-				break;
+			{
+				current_iterator = it;
+				current_priority_counter = priority_counter[it->first];
+				return;
+			}
+
+			priority_counter[it->first]++; // ????? po returnie ???
 
 			int computer_resources = -1;
 			if (res[0]["resources"].is_null() )
@@ -328,6 +373,9 @@ void executeNewJobs(JobList &executing_jobs)
 				job->setStatus(Job::Status::WAITING);
 			}
 		}
+
+	current_iterator = executing_jobs.rbegin();
+	current_priority_counter = 0;
 }
 
 pqxx::result selectFreeComputer(Job::Service s)
@@ -436,10 +484,18 @@ void updateStatusFromCrankshaft(JobList &executing_jobs)
 		else
 			new_status = Job::Status::FINISHED;
 
-		for (unsigned int i = 0; i < executing_jobs.size(); i++)
-			if (executing_jobs[i].getUniqueId() == id)
-				if (executing_jobs[i].isStatus(Job::Status::SENT) )
-					executing_jobs[i].setStatus(new_status);
+
+		map<int, vector<Job> >::iterator it;
+		for (it = executing_jobs.begin(); it != executing_jobs.end(); it++)
+			for (unsigned int i = 0; i < it->second.size(); i++)
+				if (it->second[i].getUniqueId() == id)
+					if (it->second[i].isStatus(Job::Status::SENT) )
+						it->second[i].setStatus(new_status);
+
+		// 		for (unsigned int i = 0; i < executing_jobs.size(); i++)
+		// 			if (executing_jobs[i].getUniqueId() == id)
+		// 				if (executing_jobs[i].isStatus(Job::Status::SENT) )
+		// 					executing_jobs[i].setStatus(new_status);
 
 	}
 
@@ -450,30 +506,33 @@ void manageFinishedJobs(JobList &executing_jobs)
 	char buf[MAXSIZE];
 	char query[1000];
 
-	for (unsigned int job_index=0;job_index < executing_jobs.size();job_index++)
+	// 	for (unsigned int job_index=0;job_index < executing_jobs.size();job_index++)
+
+	map<int, vector<Job> >::iterator it;
+	for (it = executing_jobs.begin(); it != executing_jobs.end(); it++)
+	for (unsigned int i = 0; i < it->second.size(); i++)
 	{
-		Job *job = &executing_jobs[job_index];
+		Job *job = &it->second[i];
 
 		if (job->isStatus(Job::Status::FINISHED))
 		{
 			// send message to mutator
 			sprintf(buf,
-				   	"%ld %d %d %d",
+					"%ld %d %d %d",
 					job->getUniqueId(),
 					job->getMutatorId(),
 					job->getTaskId(),
 					(int)job->getStatus() );
-// 					Job::Status::FINISHED );
+			// 					Job::Status::FINISHED );
 
 			msq.sendMessage(scheduler_mutator_queue, scheduler_mutator_msgt, buf);
 
 
 			string status_message =
-				msq.readMessageLock(mutator_status_queue,
-						job->getUniqueId());
-				if (status_message == "0")
+				msq.readMessageLock(mutator_status_queue, job->getUniqueId());
+			if (status_message[0] == '0')
 			{
-				cout << "FINISHED JOB "<<job->getUniqueId()<< ": "<< buf << "\n";
+				// 				cout << "FINISHED JOB "<<job->getUniqueId()<< ": "<< buf << "\n";
 
 				// stop timer
 				job->stopClock();
@@ -482,11 +541,11 @@ void manageFinishedJobs(JobList &executing_jobs)
 				sprintf(query, "DELETE FROM jobs WHERE jobid=%ld",
 						job->getUniqueId() );
 				servicesTransaction.exec(query);
-// 				servicesTransaction.exec("COMMIT");
+				// 				servicesTransaction.exec("COMMIT");
 
 				// remove from the list
-				executing_jobs.erase(job_index);
-				job_index--;
+				executing_jobs.erase(job->getPriority(), i);
+				i--;
 			}
 		}
 	}

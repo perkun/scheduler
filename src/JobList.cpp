@@ -1,34 +1,36 @@
 #include "JobList.h"
 
 
-Job& JobList::operator[](int index)
-{
-	return jobs[index];
-}
+// Job& JobList::operator[](int index)
+// {
+// 	return jobs[index];
+// }
 
 void JobList::pushBackFromMessages(vector<string> &messages)
 {
 	for (auto m: messages)
-		jobs.push_back( Job(m) );
+	{
+		Job j(m);
+
+		jobs[j.getPriority()].push_back( j );
+	}
 }
 
 void JobList::pushBack( Job j )
 {
-	jobs.push_back(j);
+	jobs[j.getPriority()].push_back(j);
 }
 
-int JobList::getMaxPriority()
+int JobList::findMaxPriority()
 {
 	if (jobs.empty())
 		return 0;
 
-	int max = -1e9;
-
-	for (Job job: jobs)
-		if (job.getPriority() > max)
-			max = job.getPriority();
-
-	return max;
+	int MAX = 0;
+	for (auto const& x: jobs)
+		if (!x.second.empty() && x.first > MAX)
+			MAX = x.first;
+	return MAX;
 }
 
 void JobList::clear()
@@ -36,35 +38,30 @@ void JobList::clear()
 	jobs.clear();
 }
 
-int JobList::findIndexWithPriority(int priority)
+
+void JobList::erase(int priority, int index)
 {
-	for (unsigned int i = 0; i < jobs.size(); i++)
-	{
-		if ( jobs[i].getPriority() == priority )
-			return i;
-	}
-	return -1;
+	jobs[priority].erase(jobs[priority].begin() + index);
 }
 
-void JobList::erase(int index)
+map<int, vector<Job> >::iterator JobList::begin()
 {
-	jobs.erase(jobs.begin() + index);
+	return jobs.begin();
 }
 
-Job JobList::getJobAtIndex(int index)
+map<int, vector<Job> >::iterator JobList::end()
 {
-	return jobs[index];
+	return jobs.end();
 }
 
-Job* JobList::getPointerAt(int index)
+map<int, vector<Job> >::reverse_iterator JobList::rbegin()
 {
-	return &jobs[index];
+	return jobs.rbegin();
 }
 
-void JobList::printAll()
+map<int, vector<Job> >::reverse_iterator JobList::rend()
 {
-	for (Job j: jobs)
-		j.printIdPriority();
+	return jobs.rend();
 }
 
 unsigned int JobList::size()
@@ -72,5 +69,30 @@ unsigned int JobList::size()
 	return jobs.size();
 }
 
+// Job JobList::getJobAtIndex(int index)
+// {
+// 	return jobs[index];
+// }
+//
+// Job* JobList::getPointerAt(int index)
+// {
+// 	return &jobs[index];
+// }
+
+// void JobList::printAll()
+// {
+// 	for (Job j: jobs)
+// 		j.printIdPriority();
+// }
+
+// int JobList::findIndexWithPriority(int priority)
+// {
+// 	for (unsigned int i = 0; i < jobs.size(); i++)
+// 	{
+// 		if ( jobs[i].getPriority() == priority )
+// 			return i;
+// 	}
+// 	return -1;
+// }
 //==============================================================================
 

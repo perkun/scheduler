@@ -5,14 +5,14 @@ BIN = bin
 
 CFLAGS = -g -c -std=c++11 -Wall
 LFLAGS = -g -Wall -std=c++11
-LIBS = -lpqxx -lncurses
+LIBS = -lpqxx -lncurses -lrt
 
 
 
 OBJS = $(BUILD)/Job.o $(BUILD)/JobList.o $(BUILD)/MessageQueue.o $(BUILD)/scheduler.o
 
 
-
+#all: $(BUILD)/JobList.o
 all: $(BIN)/scheduler $(BIN)/mqSend $(BIN)/crankshaft $(BIN)/msqtest
 
 
@@ -24,10 +24,10 @@ $(BIN)/crankshaft: $(BUILD)/crankshaft.o $(BUILD)/MessageQueue.o
 		$(CC) $(LFLAGS) $(BUILD)/crankshaft.o $(BUILD)/MessageQueue.o  -o $(BIN)/crankshaft
 
 $(BIN)/msqtest: $(BUILD)/msqtest.o $(BUILD)/MessageQueue.o
-		$(CC) $(LFLAGS) $(BUILD)/msqtest.o $(BUILD)/MessageQueue.o  -o $(BIN)/msqtest
+		$(CC) $(LFLAGS) $(BUILD)/msqtest.o $(BUILD)/MessageQueue.o  -o $(BIN)/msqtest -lrt
 
 $(BIN)/mqSend:
-		gcc src/mqSend.c -o bin/mqSend
+		gcc src/mqSend.c -o bin/mqSend -lrt
 
 
 

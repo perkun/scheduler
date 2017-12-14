@@ -15,7 +15,8 @@ Job::Job(string msg)
 {
 
 	unique_id = mutator_id = priority = -1;
-	parseMessage(msg);
+	if (parseMessage(msg) < 0)
+		return;
 
 	if (resources < 0)
 	{
@@ -32,10 +33,11 @@ Job::Job(string msg)
 
 
 
-void Job::parseMessage(string msg)
+int Job::parseMessage(string msg)
 {
 // 	cout << msg << "\n";
 	char buff1[1000]; //buff2[1000];
+	memset(buff1, '\0', sizeof buff1);
 
 	int s;
 	sscanf(msg.c_str(),
@@ -52,8 +54,13 @@ void Job::parseMessage(string msg)
 
 // 	printf("service: %d\n", service);
 	if (task_id < 0 || mutator_id < 0 || priority < 0)
+	{
 		perror("invalid message");
+		cout << msg.c_str() << "\n";
+		return -1;
+	}
 
+	return 0;
 }
 
 void Job::printInfo()

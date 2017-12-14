@@ -4,6 +4,7 @@
 #include <iostream>
 #include <stdio.h>
 #include <time.h>
+#include <string.h>
 
 using namespace std;
 
@@ -42,7 +43,7 @@ public:
 
 	Job();
 	Job(string);
-	void parseMessage(string);
+	int parseMessage(string);
 	void printInfo();
 	void printIdPriority();
 
