@@ -23,6 +23,36 @@ struct MessageBuffer
     char    mtext[MAXSIZE];
 };
 
+
+
+class MessageQueue
+{
+public:
+	int num_sent;
+	int num_received;
+ 	MessageQueue();
+ 	~MessageQueue();
+// 	MessageQueue(int);
+	vector<string> readQueue(int k, long t);
+	string readMessageLock(int k, long t);
+	int sendMessage(int k, long t, string message);
+	void recreate(int k);
+	void die(const char *s);
+	void cleanQueue(int k);
+
+// 	struct MessageBuffer rcvbuffer;
+
+	bool log_messages;
+	string log_messages_filename;
+
+    int msqid;
+    key_t key;
+	char c='q';
+
+	FILE *logfile;
+
+};
+
 // struct ipc_perm {
 // 	key_t          __key;       /* Key supplied to msgget(2) */
 // 	uid_t          uid;         /* Effective UID of owner */
@@ -47,31 +77,4 @@ struct MessageBuffer
 // 	pid_t           msg_lspid;    /* PID of last msgsnd(2) */
 // 	pid_t           msg_lrpid;    /* PID of last msgrcv(2) */
 // };
-
-
-class MessageQueue
-{
-public:
-	int num_sent;
-	int num_received;
- 	MessageQueue();
- 	~MessageQueue();
-// 	MessageQueue(int);
-	vector<string> readQueue(int k, long t);
-	string readMessageLock(int k, long t);
-	int sendMessage(int k, long t, string message);
-	void recreate(int k);
-	void die(const char *s);
-	void cleanQueue(int k);
-
-// 	struct MessageBuffer rcvbuffer;
-
-    int msqid;
-    key_t key;
-	char c='q';
-
-	FILE *logfile;
-
-};
-
 #endif /* MESSAGEQUEUE_H_ */

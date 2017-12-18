@@ -6,7 +6,7 @@
 // 	return jobs[index];
 // }
 
-void JobList::pushBackFromMessages(vector<string> &messages)
+void JobList::pushBackFromMessages(vector<string> messages)
 {
 	for (auto m: messages)
 	{
@@ -38,6 +38,15 @@ void JobList::clear()
 	jobs.clear();
 }
 
+void JobList::clearEmtyItems()
+{
+	for (auto it = jobs.cbegin(); it != jobs.cend(); )
+		if (it->second.empty())
+			jobs.erase(it++);    // or "it = m.erase(it)" since C++11
+		else
+			++it;
+}
+
 
 void JobList::erase(int priority, int index)
 {
@@ -52,6 +61,11 @@ map<int, vector<Job> >::iterator JobList::begin()
 map<int, vector<Job> >::iterator JobList::end()
 {
 	return jobs.end();
+}
+
+map<int, vector<Job> >::iterator JobList::find(int key)
+{
+	return jobs.find(key);
 }
 
 map<int, vector<Job> >::reverse_iterator JobList::rbegin()

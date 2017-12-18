@@ -137,6 +137,19 @@ string Job::getPath()
 	return path;
 }
 
+string Job::getMessageToMutator()
+{
+	char buf[1000];
+	sprintf(buf,
+			"%ld %d %d %d",
+			getUniqueId(),
+			getMutatorId(),
+			getTaskId(),
+			(int)getStatus() );
+
+	string s = buf;
+	return s;
+}
 
 
 string Job::getMessageToCrankshaft()
@@ -181,7 +194,6 @@ void Job::stopClock()
 {
 	time(&end);
 }
-
 
 void Job::setStatus(Status s)
 {

@@ -74,6 +74,7 @@ public:
 	string getPath();
 
 	string getMessageToCrankshaft();
+	string getMessageToMutator();
 
 
 	double getExecutonTimeSeconds();

@@ -18,10 +18,11 @@ public:
 // 	Job& operator[] (const int index);
 	map<int, vector<Job> >::iterator begin();
 	map<int, vector<Job> >::iterator end();
+	map<int, vector<Job> >::iterator find(int);
 	map<int, vector<Job> >::reverse_iterator rbegin();
 	map<int, vector<Job> >::reverse_iterator rend();
 
-	void pushBackFromMessages( vector<string> &messages);
+	void pushBackFromMessages(vector<string> messages);
 	void pushBack( Job );
 	int findMaxPriority();
 // 	int findIndexWithPriority(int);
@@ -30,6 +31,7 @@ public:
 // 	Job* getPointerAt(int);
 // 	void printAll();
 	void clear();
+	void clearEmtyItems();
 	unsigned int size();
 
 protected:
