@@ -9,7 +9,7 @@ LIBS = -lpqxx -lncurses -lrt
 
 
 
-OBJS = $(BUILD)/Job.o $(BUILD)/JobList.o $(BUILD)/MessageQueue.o $(BUILD)/scheduler.o $(BUILD)/Options.o
+OBJS = $(BUILD)/Job.o $(BUILD)/JobList.o $(BUILD)/MessageQueue.o $(BUILD)/scheduler.o $(BUILD)/Options.o $(BUILD)/Computer.o
 
 
 #all: $(BUILD)/JobList.o
@@ -56,6 +56,10 @@ $(BUILD)/Job.o: $(SRC)/Job.cpp $(SRC)/Job.h
 $(BUILD)/JobList.o: $(SRC)/JobList.cpp $(SRC)/JobList.h $(SRC)/Job.h
 		@mkdir -p $(BUILD)
 		$(CC) $(CFLAGS) $(SRC)/JobList.cpp -o $(BUILD)/JobList.o
+
+$(BUILD)/Computer.o: $(SRC)/Computer.cpp $(SRC)/Computer.h
+		@mkdir -p $(BUILD)
+		$(CC) $(CFLAGS) $(SRC)/Computer.cpp -o $(BUILD)/Computer.o
 
 $(BUILD)/Options.o: $(SRC)/Options.cpp $(SRC)/Options.h
 		@mkdir -p $(BUILD)
