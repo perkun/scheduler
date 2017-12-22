@@ -31,12 +31,10 @@ public:
 	int num_sent;
 	int num_received;
  	MessageQueue();
- 	~MessageQueue();
-// 	MessageQueue(int);
 	vector<string> readQueue(int k, long t);
 	string readMessageLock(int k, long t);
 	int sendMessage(int k, long t, string message);
-	void recreate(int k);
+// 	void recreate(int k);
 	void die(const char *s);
 	void cleanQueue(int k);
 

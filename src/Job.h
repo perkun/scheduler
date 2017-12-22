@@ -39,7 +39,7 @@ public:
 		NUM_STAUTSES
 	};
 
-	static long ID;
+	static long ID; ///< Increments when a new Job object is created. Starts at 1
 
 	Job();
 	Job(string);
@@ -87,17 +87,19 @@ public:
 protected:
 	time_t start, end;
 
-	Status status;
-	Type type;
+	Status status; ///< status of the job
+	Type type;		///< job is handled in different ways based on type
 	// rzeczy z kolejki zczytane
 	int task_id, mutator_id, priority;
+
+	/** unique id number.
+	  Resets to 1 on scheduler startup and increments when new jobs are added*/
 	long unique_id;
 	string path, program;
 
 	// do wykonywania
-	// time start, stop
-	int resources;
-	Service service;
+	int resources; ///< GPU resources in MB needed for the job
+	Service service; ///< computer has to be capable of executing this job
 	string computer_ip;
 
 

@@ -11,6 +11,9 @@ Job::Job()
 	type = Type::NORMAL;
 }
 
+/** @brief Parses the message from mutator on creation
+ *
+ */
 Job::Job(string msg)
 {
 
@@ -33,6 +36,12 @@ Job::Job(string msg)
 
 
 
+/** @brief Parses the message and sets members' values accordingly
+ *
+ * @return
+ * * 0 on success
+ * * -1 on failure
+ */
 int Job::parseMessage(string msg)
 {
 // 	cout << msg << "\n";
@@ -86,6 +95,13 @@ void Job::setPriority(int p)
 	priority = p;
 }
 
+/**
+ * @brief estimates needed resources.
+ *
+ * @return
+ * resources that were passed in message queue. If Type of a job is
+ * Type::ESTIMATE_RESOURCES than MAX is returned.
+ */
 int Job::estimateResources(int MAX)
 {
 	if (isType(Type::ESTIMATE_RESOURCES))
@@ -137,6 +153,11 @@ string Job::getPath()
 	return path;
 }
 
+
+/** @return
+ * formatted message ready to send to Mutator program
+ *
+ */
 string Job::getMessageToMutator()
 {
 	char buf[1000];
@@ -152,6 +173,10 @@ string Job::getMessageToMutator()
 }
 
 
+/** @return
+ * formatted message ready to send to Crankshaft program
+ *
+ */
 string Job::getMessageToCrankshaft()
 {
 	/// returns string with:

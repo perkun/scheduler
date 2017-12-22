@@ -1,37 +1,28 @@
 #include "MessageQueue.h"
 
+/** @brief Performs perror with string s and exits program.  */
 void MessageQueue::die(const char *s)
 {
 	perror(s);
 	exit(1);
 }
 
+
 MessageQueue::MessageQueue()
 {
-// 	logfile = fopen("messageQueue.log", "a");
-// 	fprintf(logfile, "########## START ########## \n");
-
 	num_received = 0;
 	log_messages = false;
 	log_messages_filename = "messages.log";
 }
 
-MessageQueue::~MessageQueue()
-{
-// 	fclose(logfile);
-}
 
 
-// MessageQueue::MessageQueue(int k)
-// {
-// 	key = k;
-// //
-// 	if ((msqid = msgget(key, 0666)) < 0)
-// 		die("msgget()");
-// //
-// }
 
-
+/** @brief Reads message queue with key k and message type t
+ *
+ * Checks the number of available messages and then reads them.
+ * @return vector of strings with all messages available at the time form queue
+ */
 vector<string> MessageQueue::readQueue(int k, long t)
 {
 	vector<string> messages;
@@ -92,6 +83,12 @@ vector<string> MessageQueue::readQueue(int k, long t)
 	return messages;
 }
 
+
+/** @brief Reads one message from queue with key k and message type t
+ *
+ * If no messages are available, program hangs until one appears.
+ * @return message string
+ */
 string MessageQueue::readMessageLock(int k, long t)
 {
 	struct MessageBuffer rcvbuffer;
@@ -121,6 +118,7 @@ string MessageQueue::readMessageLock(int k, long t)
 }
 
 
+/** @brief Sends message on queue with key k and message type t */
 int MessageQueue::sendMessage(int k, long t, string message)
 {
 	if (log_messages)
@@ -162,24 +160,28 @@ int MessageQueue::sendMessage(int k, long t, string message)
 	return 0;
 }
 
-void MessageQueue::recreate(int k)
-{
-	int msgflg = IPC_CREAT | 0666;
-	key = k;
+// void MessageQueue::recreate(int k)
+// {
+// 	int msgflg = IPC_CREAT | 0666;
+// 	key = k;
+//
+// 	if ((msqid = msgget(key, 0666 )) < 0)
+// 	{
+// 		//       die("clearing error ");
+// 		printf("no queue to destroy\n");
+// // 		return;
+// 	}
+// 	else if (msgctl(msqid, IPC_RMID, NULL) == -1)
+// 		printf("Message queue could not be deleted\n");
+//
+// 	printf("creating new queue\n");
+// 	msqid = msgget(key, msgflg);
+// }
 
-	if ((msqid = msgget(key, 0666 )) < 0)
-	{
-		//       die("clearing error ");
-		printf("no queue to destroy\n");
-// 		return;
-	}
-	else if (msgctl(msqid, IPC_RMID, NULL) == -1)
-		printf("Message queue could not be deleted\n");
 
-	printf("creating new queue\n");
-	msqid = msgget(key, msgflg);
-}
-
+/** @brief Reads all messages (of all types) in message queue with key k
+ *
+ */
 void MessageQueue::cleanQueue(int k)
 {
 	readQueue(k, 0);
