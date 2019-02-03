@@ -445,6 +445,15 @@ void executeNewJobs(map<int, vector<Job> > &jobs, vector<Computer> &computers)
 
 				priority_counter[it->first]++;
 			}
+
+			long id = 0;
+			for (auto c: computers)
+				if (c.blocked)
+				{
+					id = c.blocking_job_id;
+				}
+
+
 		}
 
 	current_priority = 1;

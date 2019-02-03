@@ -1,4 +1,4 @@
-CC=/usr/bin/g++-6
+CC=g++
 SRC = src
 BUILD = build
 BIN = bin
