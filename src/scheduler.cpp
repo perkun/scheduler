@@ -90,8 +90,8 @@ MessageQueue msq;
 long Job::ID = 1;
 int current_priority_counter = 0;
 int current_priority = 1;
-connection services("dbname=grzeslaff user=grzeslaff password=grigori8 hostaddr=150.254.66.29 ");
-// connection services("dbname=grzeslaff user=grzeslaff password=grigori hostaddr=127.0.0.1");
+connection services("dbname=grzeslaff user=ggg password=xx7 hostaddr=150.254.66.29 ");
+// connection services("dbname=grzeslaff user=ggg password=xx hostaddr=127.0.0.1");
 nontransaction servicesTransaction(services, "Services transaction");
 
 
