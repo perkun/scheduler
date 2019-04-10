@@ -99,7 +99,7 @@ nontransaction servicesTransaction(services, "Services transaction");
  * ## MAIN FUNCTION
  * ### Initialization:
  *
- * * connects to database `grzeslaff` with (computer_ip, service) table
+ * * connects to database with (computer_ip, service) table
  * * sets `current_priority = 1`, `current_priority_counter = 0`
  * * clears queues
  * * sends message to MANAGER that it started
@@ -446,6 +446,7 @@ void executeNewJobs(map<int, vector<Job> > &jobs, vector<Computer> &computers)
 				priority_counter[it->first]++;
 			}
 
+			// co to robi i po co ???
 			long id = 0;
 			for (auto c: computers)
 				if (c.blocked)

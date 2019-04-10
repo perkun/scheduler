@@ -109,6 +109,17 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <code>#include &quot;<a class="el" href="Job_8h_source.html">Job.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="Options_8h_source.html">Options.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="Computer_8h_source.html">Computer.h</a>&quot;</code><br />
+</div><div class="textblock"><div class="dynheader">
+Include dependency graph for scheduler.cpp:</div>
+<div class="dyncontent">
+<div class="center"><img src="scheduler_8cpp__incl.png" border="0" usemap="#_2home_2grzeslaff_2projects_2scheduler_2src_2scheduler_8cpp" alt=""/></div>
+<map name="_2home_2grzeslaff_2projects_2scheduler_2src_2scheduler_8cpp" id="_2home_2grzeslaff_2projects_2scheduler_2src_2scheduler_8cpp">
+<area shape="rect" id="node15" href="MessageQueue_8h.html" title="MessageQueue.h" alt="" coords="515,95,639,121"/>
+<area shape="rect" id="node18" href="Job_8h.html" title="Job.h" alt="" coords="117,95,171,121"/>
+<area shape="rect" id="node19" href="Options_8h.html" title="Options.h" alt="" coords="195,95,274,121"/>
+<area shape="rect" id="node20" href="Computer_8h.html" title="Computer.h" alt="" coords="349,95,440,121"/>
+</map>
+</div>
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="define-members"></a>
 Macros</h2></td></tr>
@@ -196,9 +207,9 @@ Functions</h2></td></tr>
 <tr class="separator:a1f83ceb5fbaf42022a10bf37246a9ae0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a160f14b7b2831c36414f995bf11bc6b8"><td class="memItemLeft" align="right" valign="top">const char *const&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="scheduler_8cpp.html#a160f14b7b2831c36414f995bf11bc6b8">boolToString</a> (bool b)</td></tr>
 <tr class="separator:a160f14b7b2831c36414f995bf11bc6b8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:acd054ff1e43b113756737ef6cb445111"><td class="memItemLeft" align="right" valign="top">connection&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="scheduler_8cpp.html#acd054ff1e43b113756737ef6cb445111">services</a> (&quot;dbname=grzeslaff user=grzeslaff password=grigori8 hostaddr=150.254.66.29 &quot;)</td></tr>
-<tr class="separator:acd054ff1e43b113756737ef6cb445111"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a05b80c5ffa05a1c7ddd04c06280ecaf7"><td class="memItemLeft" align="right" valign="top">nontransaction&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="scheduler_8cpp.html#a05b80c5ffa05a1c7ddd04c06280ecaf7">servicesTransaction</a> (<a class="el" href="scheduler_8cpp.html#acd054ff1e43b113756737ef6cb445111">services</a>,&quot;Services transaction&quot;)</td></tr>
+<tr class="memitem:a975ac969e988aaf16e6acdf5d82fc365"><td class="memItemLeft" align="right" valign="top">connection&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="scheduler_8cpp.html#a975ac969e988aaf16e6acdf5d82fc365">services</a> (&quot;dbname=grzeslaff user=ggg password=xx7 hostaddr=150.254.66.29 &quot;)</td></tr>
+<tr class="separator:a975ac969e988aaf16e6acdf5d82fc365"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a05b80c5ffa05a1c7ddd04c06280ecaf7"><td class="memItemLeft" align="right" valign="top">nontransaction&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="scheduler_8cpp.html#a05b80c5ffa05a1c7ddd04c06280ecaf7">servicesTransaction</a> (<a class="el" href="scheduler_8cpp.html#a975ac969e988aaf16e6acdf5d82fc365">services</a>,&quot;Services transaction&quot;)</td></tr>
 <tr class="separator:a05b80c5ffa05a1c7ddd04c06280ecaf7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0ddf1224851353fc92bfbff6f499fa97"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="scheduler_8cpp.html#a0ddf1224851353fc92bfbff6f499fa97">main</a> (int argc, char *argv[])</td></tr>
 <tr class="separator:a0ddf1224851353fc92bfbff6f499fa97"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -695,7 +706,7 @@ Variables</h2></td></tr>
 <h2>MAIN FUNCTION</h2>
 <h3>Initialization:</h3>
 <ul>
-<li>connects to database <code>grzeslaff</code> with (computer_ip, service) table</li>
+<li>connects to database with (computer_ip, service) table</li>
 <li>sets <code>current_priority = 1</code>, <code>current_priority_counter = 0</code></li>
 <li>clears queues</li>
 <li>sends message to MANAGER that it started</li>
@@ -885,7 +896,7 @@ Variables</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="acd054ff1e43b113756737ef6cb445111"></a>
+<a class="anchor" id="a975ac969e988aaf16e6acdf5d82fc365"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -907,7 +918,7 @@ Variables</h2></td></tr>
         <tr>
           <td class="memname">nontransaction servicesTransaction </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="scheduler_8cpp.html#acd054ff1e43b113756737ef6cb445111">services</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="scheduler_8cpp.html#a975ac969e988aaf16e6acdf5d82fc365">services</a>&#160;</td>
           <td class="paramname">, </td>
         </tr>
         <tr>
@@ -985,7 +996,7 @@ Variables</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Jan 2 2018 20:37:17 for Scheduler for OA Cluster by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Wed Apr 10 2019 12:15:40 for Scheduler for OA Cluster by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.11
 </small></address>

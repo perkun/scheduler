@@ -13,7 +13,7 @@ var searchData=
   ['sendmessage',['sendMessage',['../classMessageQueue.html#a411cd1ba284e27cd4e085b9c6150a374',1,'MessageQueue']]],
   ['sent',['SENT',['../classJob.html#a5cc7599f97df55d76c4f86a130285884a145d630174eaf95ef13b8a02f76e1f75',1,'Job']]],
   ['service',['Service',['../classJob.html#a3ebf7aeab9bd980e6b4a1c1b38d5f96b',1,'Job::Service()'],['../classJob.html#a7771c42ebf6af7a19e4f6d5b6fb9106d',1,'Job::service()']]],
-  ['services',['services',['../classComputer.html#ae6d228cd1c100dcddd6c36d1c25d3e64',1,'Computer::services()'],['../scheduler_8cpp.html#acd054ff1e43b113756737ef6cb445111',1,'services():&#160;scheduler.cpp']]],
+  ['services',['services',['../classComputer.html#ae6d228cd1c100dcddd6c36d1c25d3e64',1,'Computer::services()'],['../scheduler_8cpp.html#a975ac969e988aaf16e6acdf5d82fc365',1,'services():&#160;scheduler.cpp']]],
   ['servicestransaction',['servicesTransaction',['../scheduler_8cpp.html#a05b80c5ffa05a1c7ddd04c06280ecaf7',1,'scheduler.cpp']]],
   ['setcomputerip',['setComputerIp',['../classJob.html#a02bb4963b7d2702a92fd4e9367d7a909',1,'Job::setComputerIp(string)'],['../classJob.html#af64ebe66889c44ab339bd6ccb223621f',1,'Job::setComputerIp(const char *)']]],
   ['setpriority',['setPriority',['../classJob.html#a482fd6ecacad95878139dfcff248fe37',1,'Job']]],
